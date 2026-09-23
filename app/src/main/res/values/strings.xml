@@ -1,3 +1,50 @@
 <resources>
     <string name="app_name">SaafLoop</string>
+
+    <!-- Onboarding Strings -->
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_next">Next</string>
+    <string name="onboarding_back">Back</string>
+    <string name="onboarding_get_started">Get Started</string>
+    <string name="onboarding_done">Done</string>
+    <string name="onboarding_spot_title">Spot Public Waste</string>
+    <string name="onboarding_spot_desc">Residents identify and pinpoint public waste dumping sites on the map with photos and key details.</string>
+    <string name="onboarding_solve_title">Solve It Together</string>
+    <string name="onboarding_solve_desc">Participating community cleanup teams and verified organisations respond and coordinate efforts.</string>
+    <string name="onboarding_keep_title">Keep It Clean</string>
+    <string name="onboarding_keep_desc">Independent confirmation and follow-up checks verify that cleaned locations stay waste-free.</string>
+    <string name="onboarding_page_indicator">Page %1$d of %2$d</string>
+
+    <!-- Access Choice Strings -->
+    <string name="access_welcome_title">Welcome to SaafLoop</string>
+    <string name="access_welcome_subtitle">Spot it. Solve it. Keep it clean.</string>
+    <string name="access_continue_guest">Continue as Guest</string>
+    <string name="access_continue_guest_desc">Start exploring public waste maps and local cleanup activities right away.</string>
+    <string name="access_sign_in">Sign In</string>
+    <string name="access_sign_in_badge">Coming in Section 6</string>
+    <string name="access_sign_in_info_title">Resident Account Access</string>
+    <string name="access_sign_in_info_desc">Secure resident sign-in with cross-device sync and saved history will be available in Section 6.</string>
+    <string name="access_organisation_title">Join as an Organisation</string>
+    <string name="access_organisation_subtitle">Sanitation teams, NGOs, and municipal partners</string>
+    <string name="access_organisation_desc">Organisations require official verification to ensure authentic cleanup actions and prevent misuse.</string>
+    <string name="access_organisation_info_title">Organisation Verification</string>
+    <string name="access_organisation_info_desc">Official team registration and verification workflows will open in Section 6. No fake or unverified team accounts are permitted.</string>
+    <string name="access_dialog_close">Close</string>
+
+    <!-- Profile Strings -->
+    <string name="profile_title">Profile &amp; Settings</string>
+    <string name="profile_guest_badge">Guest Session</string>
+    <string name="profile_guest_title">Guest Resident</string>
+    <string name="profile_guest_desc">You are currently using SaafLoop in guest mode. Your local reports stay on this device.</string>
+    <string name="profile_account_features_title">What Account Access Will Enable Later</string>
+    <string name="profile_feature_1">Sync reports and contribution history across all your devices</string>
+    <string name="profile_feature_2">Join or represent verified community cleanup organisations</string>
+    <string name="profile_feature_3">Earn civic reputation scores and verified cleanup badges</string>
+    <string name="profile_feature_4">Receive real-time follow-up alerts when reported spots are inspected</string>
+    <string name="profile_view_onboarding">View Onboarding</string>
+    <string name="profile_exit_guest">Exit Guest Mode</string>
+    <string name="profile_exit_guest_confirm_title">Exit Guest Mode?</string>
+    <string name="profile_exit_guest_confirm_desc">You will return to the access choice screen. Your onboarding preference will be preserved.</string>
+    <string name="profile_exit_guest_confirm_btn">Exit Guest Session</string>
+    <string name="profile_cancel">Cancel</string>
 </resources>
