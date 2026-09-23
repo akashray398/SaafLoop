@@ -1,0 +1,27 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- SaafLoop Branded Location Pin Outer Outline -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M54,82 C40,65 34,54 34,42 C34,31 43,22 54,22 C65,22 74,31 74,42 C74,54 68,65 54,82 Z" />
+
+    <!-- Inner Continuous Cleanup Loop Shape (Fresh Teal) -->
+    <path
+        android:strokeColor="#00CBC4"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:pathData="M46,42 A8,8 0,1 1,62,42 A8,8 0,1 1,46,42" />
+
+    <!-- Central Inner Dot representing the trust anchor -->
+    <path
+        android:fillColor="#00CBC4"
+        android:pathData="M54,42m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" />
+
+</vector>

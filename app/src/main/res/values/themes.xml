@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme -->
+    <style name="Theme.SaafLoop" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Splash Screen theme -->
+    <style name="Theme.SaafLoop.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#F8F9FA</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.SaafLoop</item>
+    </style>
+</resources>
