@@ -1,6 +1,5 @@
 package com.example.saafloop.feature.report
 
-import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -12,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -63,6 +63,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -94,11 +95,19 @@ import com.example.saafloop.feature.report.model.WasteSizeEstimate
 fun ReportWasteScreen(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
+    draftId: String? = null,
     viewModel: ReportWasteViewModel = viewModel()
 ) {
-    val context = LocalContext.current
     val formState by viewModel.formState.collectAsState()
     var showLeaveConfirmDialog by remember { mutableStateOf(false) }
+    val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
+    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+
+    LaunchedEffect(draftId) {
+        if (!draftId.isNullOrBlank()) {
+            viewModel.loadDraft(draftId)
+        }
+    }
 
     // Intercept back actions when user has unpersisted input
     val handleBackPress = {
@@ -132,6 +141,7 @@ fun ReportWasteScreen(
     }
 
     Scaffold(
+        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -146,6 +156,23 @@ fun ReportWasteScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    TextButton(
+                        onClick = {
+                            viewModel.saveAsDraft { _, message ->
+                                coroutineScope.launch {
+                                    snackbarHostState.showSnackbar(message)
+                                }
+                            }
+                        }
+                    ) {
+                        Text(
+                            text = stringResource(R.string.draft_action_save_draft),
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 },

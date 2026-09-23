@@ -51,7 +51,8 @@ fun AccessChoiceScreen(
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
-    var activeDialogType by remember { mutableStateOf<AccessChoiceDialogType?>(null) }
+    var showAuthDialog by remember { mutableStateOf(false) }
+    var activeOrgDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -123,13 +124,13 @@ fun AccessChoiceScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Option 2: "Sign in" Card (Section 6 Preview)
+            // Option 2: "Sign in" Card
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
                     .clickable {
-                        activeDialogType = AccessChoiceDialogType.ResidentSignIn
+                        showAuthDialog = true
                     },
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
@@ -158,27 +159,11 @@ fun AccessChoiceScreen(
                     }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = stringResource(R.string.access_sign_in),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Box(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(MaterialTheme.colorScheme.tertiaryContainer)
-                                    .padding(horizontal = 6.dp, vertical = 2.dp)
-                            ) {
-                                Text(
-                                    text = stringResource(R.string.access_sign_in_badge),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                                )
-                            }
-                        }
+                        Text(
+                            text = stringResource(R.string.access_sign_in),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = "Save report history & sync across devices.",
@@ -194,13 +179,13 @@ fun AccessChoiceScreen(
                 }
             }
 
-            // Option 3: "Join as an organisation" Card (Verification requirement explanation)
+            // Option 3: "Join as an organisation" Card
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(16.dp))
                     .clickable {
-                        activeDialogType = AccessChoiceDialogType.OrganisationJoin
+                        activeOrgDialog = true
                     },
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface
@@ -253,10 +238,19 @@ fun AccessChoiceScreen(
         Spacer(modifier = Modifier.height(24.dp))
     }
 
-    // Modal dialogs providing transparent explanations without fake claims
-    activeDialogType?.let { dialogType ->
+    if (showAuthDialog) {
+        AuthDialog(
+            onDismiss = { showAuthDialog = false },
+            onAuthSuccess = {
+                showAuthDialog = false
+                onContinueAsGuest()
+            }
+        )
+    }
+
+    if (activeOrgDialog) {
         AlertDialog(
-            onDismissRequest = { activeDialogType = null },
+            onDismissRequest = { activeOrgDialog = false },
             icon = {
                 Icon(
                     imageVector = Icons.Default.Info,
@@ -266,24 +260,18 @@ fun AccessChoiceScreen(
             },
             title = {
                 Text(
-                    text = when (dialogType) {
-                        AccessChoiceDialogType.ResidentSignIn -> stringResource(R.string.access_sign_in_info_title)
-                        AccessChoiceDialogType.OrganisationJoin -> stringResource(R.string.access_sign_in_info_title)
-                    },
+                    text = stringResource(R.string.access_organisation_info_title),
                     fontWeight = FontWeight.Bold
                 )
             },
             text = {
                 Text(
-                    text = when (dialogType) {
-                        AccessChoiceDialogType.ResidentSignIn -> stringResource(R.string.access_sign_in_info_desc)
-                        AccessChoiceDialogType.OrganisationJoin -> stringResource(R.string.access_organisation_info_desc)
-                    },
+                    text = stringResource(R.string.access_organisation_info_desc),
                     style = MaterialTheme.typography.bodyMedium
                 )
             },
             confirmButton = {
-                TextButton(onClick = { activeDialogType = null }) {
+                TextButton(onClick = { activeOrgDialog = false }) {
                     Text(
                         text = stringResource(R.string.access_dialog_close),
                         fontWeight = FontWeight.Bold
@@ -292,9 +280,4 @@ fun AccessChoiceScreen(
             }
         )
     }
-}
-
-private enum class AccessChoiceDialogType {
-    ResidentSignIn,
-    OrganisationJoin
 }

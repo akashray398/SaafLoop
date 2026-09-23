@@ -106,11 +106,27 @@
     <string name="report_location_required_error">A valid location pin is required.</string>
     <string name="report_review_title">Review Waste Report</string>
     <string name="report_review_disclaimer">Unsubmitted Report Form. Real backend submission and sync arrive in Section 6.</string>
-    <string name="report_draft_disabled_btn">Draft saving arrives in Section 5</string>
+    <string name="report_draft_disabled_btn">Submit Report (Section 6)</string>
     <string name="report_next_stage">Next Step</string>
     <string name="report_prev_stage">Previous</string>
     <string name="report_leave_confirm_title">Unsaved Waste Report</string>
     <string name="report_leave_confirm_desc">You have unpersisted report details. Exiting now will discard this form draft.</string>
     <string name="report_leave_confirm_exit">Exit Report</string>
     <string name="report_leave_confirm_keep">Keep Editing</string>
+
+    <!-- Drafts & Activity Strings -->
+    <string name="activity_title">My Drafts &amp; Activity</string>
+    <string name="drafts_section_title">My Local Drafts</string>
+    <string name="drafts_guest_notice">Guest Drafts are saved locally on this device. Drafts remain editable offline and will sync when accounts arrive in Section 6.</string>
+    <string name="draft_status_incomplete">Incomplete</string>
+    <string name="draft_status_ready">Ready to Submit</string>
+    <string name="draft_save_success">Draft saved locally</string>
+    <string name="draft_save_error">Unable to save draft photo to local storage</string>
+    <string name="draft_action_save_draft">Save as Draft</string>
+    <string name="draft_delete_confirm_title">Delete Local Draft?</string>
+    <string name="draft_delete_confirm_desc">This draft and its private photo will be permanently deleted from this device.</string>
+    <string name="draft_delete_btn">Delete Draft</string>
+    <string name="draft_empty_title">No Local Drafts</string>
+    <string name="draft_empty_desc">You have no saved report drafts on this device. Spot a public waste site to create a new report!</string>
+    <string name="draft_start_report_btn">Start New Report</string>
 </resources>

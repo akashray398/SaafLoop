@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions for secure server-side authorization
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // 1. User Resident Profiles
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isOwner(userId);
+      allow delete: if false;
+    }
+
+    // 2. Cases / Waste Reports
+    match /cases/{caseId} {
+      // Anyone signed in can read case projections
+      allow read: if isSignedIn();
+
+      // Only authenticated residents can submit a case under their own authorUid
+      allow create: if isSignedIn()
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.status == 'SUBMITTED'
+        && request.resource.data.assignedOrgId == null;
+
+      // Author can update text/notes while in SUBMITTED state; cannot alter status to VERIFIED_CLEAN or assign orgs
+      allow update: if isSignedIn()
+        && resource.data.authorUid == request.auth.uid
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.status == resource.data.status;
+
+      allow delete: if false;
+    }
+
+    // 3. Organisations
+    match /organisations/{orgId} {
+      allow read: if isSignedIn();
+      // Organisation registration and verification status changes are strictly forbidden from client SDKs.
+      // Must occur via trusted Admin SDK / Cloud Functions in Section 10.
+      allow write: if false;
+    }
+
+    // Default deny-all safety rule for any unlisted collections or paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

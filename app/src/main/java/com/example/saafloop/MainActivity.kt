@@ -247,7 +247,14 @@ private fun SaafLoopAppContent(
 
                 // Activity Route
                 composable(Screen.Activity.route) {
-                    ActivityScreen()
+                    ActivityScreen(
+                        onOpenDraft = { draftId ->
+                            navController.navigate("${Screen.ReportWaste.route}?draftId=$draftId")
+                        },
+                        onStartNewReport = {
+                            navController.navigate(Screen.ReportWaste.route)
+                        }
+                    )
                 }
 
                 // Profile Route
@@ -265,12 +272,23 @@ private fun SaafLoopAppContent(
                     )
                 }
 
-                // Report Waste Route
-                composable(Screen.ReportWaste.route) {
+                // Report Waste Route (with optional ?draftId parameter)
+                composable(
+                    route = "${Screen.ReportWaste.route}?draftId={draftId}",
+                    arguments = listOf(
+                        androidx.navigation.navArgument("draftId") {
+                            type = androidx.navigation.NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    )
+                ) { backStackEntry ->
+                    val draftId = backStackEntry.arguments?.getString("draftId")
                     ReportWasteScreen(
                         onBackClick = {
                             navController.popBackStack()
-                        }
+                        },
+                        draftId = draftId
                     )
                 }
             }
