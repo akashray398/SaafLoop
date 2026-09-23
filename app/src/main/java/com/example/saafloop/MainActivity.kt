@@ -238,7 +238,11 @@ private fun SaafLoopAppContent(
 
                 // Explore Route
                 composable(Screen.Explore.route) {
-                    ExploreScreen()
+                    ExploreScreen(
+                        onReportWasteClick = {
+                            navController.navigate(Screen.ReportWaste.route)
+                        }
+                    )
                 }
 
                 // Activity Route

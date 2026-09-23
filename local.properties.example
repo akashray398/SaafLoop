@@ -1,0 +1,12 @@
+# SaafLoop Local Developer Configuration Example
+# Copy this file to 'local.properties' in the root project directory and fill in your values.
+
+# Location of the Android SDK (automatically configured by Android Studio)
+# sdk.dir=C\:\\Users\\Username\\AppData\\Local\\Android\\Sdk
+
+# Google Maps Android API Key
+# 1. Obtain a Maps SDK for Android API Key from Google Cloud Console:
+#    https://console.cloud.google.com/google/maps-apis/credentials
+# 2. Configure HTTP and Application Restrictions (Android App restriction by Package Name 'com.example.saafloop' and SHA-1 Fingerprint)
+# 3. Paste your API key below:
+MAPS_API_KEY=YOUR_GOOGLE_MAPS_API_KEY_HERE
