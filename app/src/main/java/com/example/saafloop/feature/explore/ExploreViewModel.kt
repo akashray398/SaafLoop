@@ -8,6 +8,9 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.saafloop.BuildConfig
+import com.example.saafloop.core.data.RemoteCaseRepository
+import com.example.saafloop.core.data.RemoteCaseRepositoryImpl
+import com.example.saafloop.core.model.CaseReport
 import com.example.saafloop.feature.explore.model.LocationUnavailableReason
 import com.example.saafloop.feature.explore.model.MapCameraRegion
 import com.example.saafloop.feature.explore.model.MapUiState
@@ -15,11 +18,15 @@ import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class ExploreViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val remoteCaseRepository: RemoteCaseRepository = RemoteCaseRepositoryImpl(application)
 
     private val defaultRegion = MapCameraRegion(
         latitude = 28.6139,
@@ -35,6 +42,14 @@ class ExploreViewModel(application: Application) : AndroidViewModel(application)
 
     private val _searchQuery = MutableStateFlow("")
     val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+    val publicCasesState: StateFlow<List<CaseReport>> = remoteCaseRepository
+        .observePublicCases()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
 
     init {
         checkMapProviderAvailability()

@@ -68,6 +68,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.saafloop.R
+import com.example.saafloop.core.model.CaseReport
 import com.example.saafloop.feature.explore.model.LocationUnavailableReason
 import com.example.saafloop.feature.explore.model.MapCameraRegion
 import com.example.saafloop.feature.explore.model.MapUiState
@@ -216,6 +217,7 @@ fun ExploreScreen(
         }
 
         val isSdkAvailable = (mapUiState as? MapUiState.Ready)?.isMapsSdkAvailable ?: false
+        val publicCases by exploreViewModel.publicCasesState.collectAsState()
 
         Box(
             modifier = Modifier
@@ -225,7 +227,10 @@ fun ExploreScreen(
                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(20.dp))
         ) {
             if (isSdkAvailable) {
-                GoogleMapComponent(cameraRegion = currentCameraRegion)
+                GoogleMapComponent(
+                    cameraRegion = currentCameraRegion,
+                    publicCases = publicCases
+                )
             } else {
                 InteractiveFallbackMapView(cameraRegion = currentCameraRegion)
             }
@@ -411,7 +416,10 @@ fun ExploreScreen(
 }
 
 @Composable
-private fun GoogleMapComponent(cameraRegion: MapCameraRegion) {
+private fun GoogleMapComponent(
+    cameraRegion: MapCameraRegion,
+    publicCases: List<CaseReport>
+) {
     val cameraPositionState = rememberCameraPositionState {
         position = CameraPosition.fromLatLngZoom(
             LatLng(cameraRegion.latitude, cameraRegion.longitude),
@@ -434,7 +442,17 @@ private fun GoogleMapComponent(cameraRegion: MapCameraRegion) {
             myLocationButtonEnabled = false,
             mapToolbarEnabled = false
         )
-    )
+    ) {
+        publicCases.forEach { caseReport ->
+            com.google.maps.android.compose.Marker(
+                state = com.google.maps.android.compose.rememberMarkerState(
+                    position = LatLng(caseReport.latitude, caseReport.longitude)
+                ),
+                title = caseReport.category,
+                snippet = "Status: ${caseReport.status.label} • ${caseReport.approximateArea}"
+            )
+        }
+    }
 }
 
 @Composable

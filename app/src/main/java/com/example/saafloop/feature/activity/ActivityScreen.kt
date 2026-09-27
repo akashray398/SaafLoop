@@ -19,11 +19,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Photo
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Task
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -32,11 +33,14 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -58,6 +62,7 @@ import coil.compose.AsyncImage
 import com.example.saafloop.R
 import com.example.saafloop.core.database.entity.ReportDraftEntity
 import com.example.saafloop.core.database.model.DraftStatus
+import com.example.saafloop.core.model.CaseReport
 import com.example.saafloop.feature.report.model.WasteCategory
 import java.io.File
 import java.text.SimpleDateFormat
@@ -72,7 +77,14 @@ fun ActivityScreen(
     activityViewModel: ActivityViewModel = viewModel()
 ) {
     val drafts by activityViewModel.draftsState.collectAsState()
+    val submittedCases by activityViewModel.submittedCasesState.collectAsState()
+
+    val pendingDrafts = remember(drafts) { drafts.filter { it.status == "QUEUED" } }
+    val localDrafts = remember(drafts) { drafts.filter { it.status != "QUEUED" } }
+
+    var selectedTabIndex by remember { mutableIntStateOf(0) } // 0 = Local Drafts, 1 = Pending, 2 = Confirmed Cases
     var draftToDelete by remember { mutableStateOf<ReportDraftEntity?>(null) }
+    var selectedCaseDetail by remember { mutableStateOf<CaseReport?>(null) }
 
     Column(
         modifier = modifier
@@ -81,120 +93,263 @@ fun ActivityScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // 1. Guest Notice Banner
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            ),
-            shape = RoundedCornerShape(12.dp)
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(14.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Info,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = stringResource(R.string.drafts_guest_notice),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+        // Tab Selector (Drafts vs Pending vs Confirmed Cases)
+        SecondaryTabRow(selectedTabIndex = selectedTabIndex) {
+            Tab(
+                selected = selectedTabIndex == 0,
+                onClick = { selectedTabIndex = 0 },
+                text = { Text("Drafts (${localDrafts.size})", fontSize = 12.sp) }
+            )
+            Tab(
+                selected = selectedTabIndex == 1,
+                onClick = { selectedTabIndex = 1 },
+                text = { Text("Pending (${pendingDrafts.size})", fontSize = 12.sp) }
+            )
+            Tab(
+                selected = selectedTabIndex == 2,
+                onClick = { selectedTabIndex = 2 },
+                text = { Text("Confirmed (${submittedCases.size})", fontSize = 12.sp) }
+            )
         }
 
-        // Header Title
-        Text(
-            text = stringResource(R.string.drafts_section_title),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground
-        )
-
-        // 2. Drafts List or Empty State
-        if (drafts.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f),
-                contentAlignment = Alignment.Center
-            ) {
+        when (selectedTabIndex) {
+            0 -> {
+                // Local Drafts Section
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
                     ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                    shape = RoundedCornerShape(20.dp)
+                    shape = RoundedCornerShape(12.dp)
                 ) {
-                    Column(
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Edit,
+                            imageVector = Icons.Default.Info,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.tertiary,
-                            modifier = Modifier.size(48.dp)
+                            tint = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = stringResource(R.string.draft_empty_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            text = stringResource(R.string.drafts_guest_notice),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = stringResource(R.string.draft_empty_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
-                        Spacer(modifier = Modifier.height(20.dp))
-                        Button(
-                            onClick = onStartNewReport,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            )
+                    }
+                }
+
+                if (localDrafts.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surface
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                            shape = RoundedCornerShape(20.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Add,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = stringResource(R.string.draft_start_report_btn),
-                                fontWeight = FontWeight.Bold
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Edit,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.tertiary,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = stringResource(R.string.draft_empty_title),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = stringResource(R.string.draft_empty_desc),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Center,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                                Spacer(modifier = Modifier.height(20.dp))
+                                Button(
+                                    onClick = onStartNewReport,
+                                    shape = RoundedCornerShape(12.dp),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text(
+                                        text = stringResource(R.string.draft_start_report_btn),
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(
+                            items = localDrafts,
+                            key = { it.draftId }
+                        ) { draft ->
+                            DraftItemCard(
+                                draft = draft,
+                                onOpenDraft = { onOpenDraft(draft.draftId) },
+                                onDeleteClick = { draftToDelete = draft }
                             )
                         }
                     }
                 }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(
-                    items = drafts,
-                    key = { it.draftId }
-                ) { draft ->
-                    DraftItemCard(
-                        draft = draft,
-                        onOpenDraft = { onOpenDraft(draft.draftId) },
-                        onDeleteClick = { draftToDelete = draft }
-                    )
+
+            1 -> {
+                // Pending / Queued Submissions Section
+                if (pendingDrafts.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surface
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                            shape = RoundedCornerShape(20.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CloudUpload,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "No Pending Uploads",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = "Reports explicitly submitted offline will queue here and auto-upload when connection is restored.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Center,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(
+                            items = pendingDrafts,
+                            key = { it.draftId }
+                        ) { draft ->
+                            DraftItemCard(
+                                draft = draft,
+                                onOpenDraft = { onOpenDraft(draft.draftId) },
+                                onDeleteClick = { draftToDelete = draft }
+                            )
+                        }
+                    }
+                }
+            }
+
+            2 -> {
+                // Confirmed Submitted Cases Section
+                if (submittedCases.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surface
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                            shape = RoundedCornerShape(20.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Task,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(48.dp)
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Text(
+                                    text = "No Confirmed Cases Yet",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(6.dp))
+                                Text(
+                                    text = "Reports explicitly submitted to the backend will appear here with live status updates from municipal coordinators.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Center,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(
+                            items = submittedCases,
+                            key = { it.caseId }
+                        ) { caseReport ->
+                            SubmittedCaseItemCard(
+                                caseReport = caseReport,
+                                onClick = { selectedCaseDetail = caseReport }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -244,6 +399,67 @@ fun ActivityScreen(
             }
         )
     }
+
+    // Confirmed Case Detail Dialog
+    selectedCaseDetail?.let { caseReport ->
+        AlertDialog(
+            onDismissRequest = { selectedCaseDetail = null },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = Color(0xFF2E7D32)
+                )
+            },
+            title = {
+                Text(
+                    text = "Case #${caseReport.caseId.takeLast(8)}",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Status: ${caseReport.status.label}",
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "Area: ${caseReport.approximateArea}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    if (caseReport.description.isNotBlank()) {
+                        Text(
+                            text = "Note: ${caseReport.description}",
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(10.dp)
+                    ) {
+                        Text(
+                            text = "Timeline: ${caseReport.status.description}. Awaiting review by municipal coordinators.",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { selectedCaseDetail = null }) {
+                    Text(text = stringResource(R.string.access_dialog_close), fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -289,7 +505,6 @@ private fun DraftItemCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Photo Thumbnail
             Box(
                 modifier = Modifier
                     .size(68.dp)
@@ -316,7 +531,6 @@ private fun DraftItemCard(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Draft Details
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
@@ -329,7 +543,6 @@ private fun DraftItemCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
 
-                    // Status Badge
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(6.dp))
@@ -371,7 +584,6 @@ private fun DraftItemCard(
                 )
             }
 
-            // Actions (Delete)
             IconButton(
                 onClick = onDeleteClick,
                 modifier = Modifier.size(40.dp)
@@ -381,6 +593,96 @@ private fun DraftItemCard(
                     contentDescription = "Delete draft",
                     tint = MaterialTheme.colorScheme.error.copy(alpha = 0.8f),
                     modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SubmittedCaseItemCard(
+    caseReport: CaseReport,
+    onClick: () -> Unit
+) {
+    val formattedDate = remember(caseReport.createdAt) {
+        val sdf = SimpleDateFormat("MMM d, h:mm a", Locale.getDefault())
+        sdf.format(Date(caseReport.createdAt))
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(52.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.primaryContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Task,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.size(26.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.width(14.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "#${caseReport.caseId.takeLast(8)}",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(Color(0xFF2E7D32).copy(alpha = 0.15f))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            text = caseReport.status.label,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2E7D32)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                Text(
+                    text = "${caseReport.category} • ${caseReport.approximateArea}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                Text(
+                    text = "Submitted $formattedDate",
+                    style = MaterialTheme.typography.labelSmall,
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.outline
                 )
             }
         }

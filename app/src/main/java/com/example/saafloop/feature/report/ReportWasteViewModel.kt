@@ -5,24 +5,74 @@ import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.example.saafloop.core.data.AuthRepository
+import com.example.saafloop.core.data.AuthRepositoryImpl
 import com.example.saafloop.core.data.DraftRepository
 import com.example.saafloop.core.data.DraftRepositoryImpl
+import com.example.saafloop.core.data.DuplicateDetectionEngine
+import com.example.saafloop.core.data.RemoteCaseRepository
+import com.example.saafloop.core.data.RemoteCaseRepositoryImpl
+import com.example.saafloop.core.model.CaseReport
+import com.example.saafloop.core.model.DuplicateMatchItem
+import com.example.saafloop.core.worker.ReportUploadWorker
 import com.example.saafloop.feature.report.model.ReportFormStage
 import com.example.saafloop.feature.report.model.ReportFormState
+import com.example.saafloop.feature.report.model.SubmissionState
 import com.example.saafloop.feature.report.model.WasteCategory
 import com.example.saafloop.feature.report.model.WasteSizeEstimate
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.io.File
 
 class ReportWasteViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val repository: DraftRepository = DraftRepositoryImpl(application)
+    private val draftRepository: DraftRepository = DraftRepositoryImpl(application)
+    private val authRepository: AuthRepository = AuthRepositoryImpl(application)
+    private val remoteCaseRepository: RemoteCaseRepository = RemoteCaseRepositoryImpl(application)
 
     private val _formState = MutableStateFlow(ReportFormState())
     val formState: StateFlow<ReportFormState> = _formState.asStateFlow()
+
+    private val _submissionState = MutableStateFlow<SubmissionState>(SubmissionState.Draft)
+    val submissionState: StateFlow<SubmissionState> = _submissionState.asStateFlow()
+
+    val publicCasesState: StateFlow<List<CaseReport>> = remoteCaseRepository
+        .observePublicCases()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList()
+        )
+
+    val duplicateMatchesState: StateFlow<List<DuplicateMatchItem>> = combine(
+        _formState,
+        publicCasesState
+    ) { form, publicCases ->
+        if (form.category != null && (form.latitude != 0.0 || form.longitude != 0.0)) {
+            DuplicateDetectionEngine.findNearbyMatches(
+                targetLat = form.latitude,
+                targetLng = form.longitude,
+                targetCategory = form.category.name,
+                candidateCases = publicCases
+            )
+        } else {
+            emptyList()
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = emptyList()
+    )
 
     private var activeDraftId: String? = null
     private var tempCameraPhotoUri: Uri? = null
@@ -33,7 +83,7 @@ class ReportWasteViewModel(application: Application) : AndroidViewModel(applicat
         activeDraftId = draftId
 
         viewModelScope.launch {
-            val result = repository.getDraft(draftId)
+            val result = draftRepository.getDraft(draftId)
             val draft = result.getOrNull()
             if (draft != null) {
                 val photoUri = draft.photoPath?.let { path ->
@@ -68,7 +118,7 @@ class ReportWasteViewModel(application: Application) : AndroidViewModel(applicat
     /** Saves current form state locally as a draft to Room and private photo storage. */
     fun saveAsDraft(onResult: (Boolean, String) -> Unit) {
         viewModelScope.launch {
-            val result = repository.saveDraft(
+            val result = draftRepository.saveDraft(
                 formState = _formState.value,
                 draftId = activeDraftId
             )
@@ -77,6 +127,104 @@ class ReportWasteViewModel(application: Application) : AndroidViewModel(applicat
                 onResult(true, "Draft saved locally")
             }.onFailure { exception ->
                 onResult(false, exception.message ?: "Failed to save draft")
+            }
+        }
+    }
+
+    /** Explicit report submission handler. */
+    fun submitReport(
+        previousCaseId: String? = null,
+        onRequireAuth: () -> Unit,
+        onSuccessConfirmed: (String) -> Unit
+    ) {
+        val currentUserUid = authRepository.getCurrentUserUid()
+        if (currentUserUid.isNullOrBlank()) {
+            onRequireAuth()
+            return
+        }
+
+        viewModelScope.launch {
+            _submissionState.value = SubmissionState.UploadingPhoto
+
+            val saveResult = draftRepository.saveDraft(formState.value, activeDraftId)
+            val savedDraftId = saveResult.getOrNull()
+                ?: run {
+                    _submissionState.value = SubmissionState.NeedsAttention("Unable to save local draft photo")
+                    return@launch
+                }
+            activeDraftId = savedDraftId
+
+            val draftEntity = draftRepository.getDraft(savedDraftId).getOrNull()
+                ?: run {
+                    _submissionState.value = SubmissionState.NeedsAttention("Draft not found in database")
+                    return@launch
+                }
+
+            _submissionState.value = SubmissionState.FinalisingCase
+
+            val submitResult = remoteCaseRepository.submitCase(draftEntity, previousCaseId)
+            submitResult.onSuccess { serverCaseId ->
+                _submissionState.value = SubmissionState.SubmittedConfirmed(serverCaseId)
+                draftRepository.deleteDraft(savedDraftId)
+                onSuccessConfirmed(serverCaseId)
+            }.onFailure { _ ->
+                val workManager = WorkManager.getInstance(getApplication())
+                val uploadData = Data.Builder()
+                    .putString(ReportUploadWorker.KEY_DRAFT_ID, savedDraftId)
+                    .build()
+
+                val constraints = Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+
+                val uploadRequest = OneTimeWorkRequestBuilder<ReportUploadWorker>()
+                    .setInputData(uploadData)
+                    .setConstraints(constraints)
+                    .addTag("${ReportUploadWorker.WORK_TAG_PREFIX}$savedDraftId")
+                    .build()
+
+                workManager.enqueue(uploadRequest)
+                _submissionState.value = SubmissionState.QueuedForUpload
+            }
+        }
+    }
+
+    /** Confirms an existing nearby case ("This looks like the same waste"). */
+    fun confirmExistingCase(
+        caseId: String,
+        onRequireAuth: () -> Unit,
+        onSuccessConfirmed: (String) -> Unit
+    ) {
+        val currentUserUid = authRepository.getCurrentUserUid()
+        if (currentUserUid.isNullOrBlank()) {
+            onRequireAuth()
+            return
+        }
+
+        viewModelScope.launch {
+            _submissionState.value = SubmissionState.FinalisingCase
+
+            val saveResult = draftRepository.saveDraft(formState.value, activeDraftId)
+            val savedDraftId = saveResult.getOrNull()
+                ?: run {
+                    _submissionState.value = SubmissionState.NeedsAttention("Unable to save local draft photo")
+                    return@launch
+                }
+            activeDraftId = savedDraftId
+
+            val draftEntity = draftRepository.getDraft(savedDraftId).getOrNull()
+                ?: run {
+                    _submissionState.value = SubmissionState.NeedsAttention("Draft not found in database")
+                    return@launch
+                }
+
+            val confirmResult = remoteCaseRepository.confirmExistingCase(caseId, draftEntity)
+            confirmResult.onSuccess { confirmedCaseId ->
+                _submissionState.value = SubmissionState.SubmittedConfirmed(confirmedCaseId)
+                draftRepository.deleteDraft(savedDraftId)
+                onSuccessConfirmed(confirmedCaseId)
+            }.onFailure { e ->
+                _submissionState.value = SubmissionState.NeedsAttention(e.message ?: "Failed to confirm case")
             }
         }
     }

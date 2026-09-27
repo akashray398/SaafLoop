@@ -63,6 +63,7 @@ dependencies {
     implementation(libs.play.services.auth)
     implementation(libs.androidx.credentials)
     implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.androidx.work.runtime.ktx)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)

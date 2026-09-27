@@ -8,10 +8,6 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -39,9 +35,9 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.PinDrop
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -49,6 +45,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -56,8 +53,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -68,6 +66,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,16 +78,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.saafloop.R
+import com.example.saafloop.core.model.CaseStatus
+import com.example.saafloop.core.model.DuplicateMatchItem
+import com.example.saafloop.feature.auth.AuthDialog
 import com.example.saafloop.feature.report.model.ReportFormStage
 import com.example.saafloop.feature.report.model.ReportFormState
+import com.example.saafloop.feature.report.model.SubmissionState
 import com.example.saafloop.feature.report.model.WasteCategory
 import com.example.saafloop.feature.report.model.WasteSizeEstimate
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -99,9 +102,15 @@ fun ReportWasteScreen(
     viewModel: ReportWasteViewModel = viewModel()
 ) {
     val formState by viewModel.formState.collectAsState()
+    val submissionState by viewModel.submissionState.collectAsState()
+    val duplicateMatches by viewModel.duplicateMatchesState.collectAsState()
+
     var showLeaveConfirmDialog by remember { mutableStateOf(false) }
-    val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
-    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+    var showAuthDialog by remember { mutableStateOf(false) }
+    var confirmedServerCaseId by remember { mutableStateOf<String?>(null) }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(draftId) {
         if (!draftId.isNullOrBlank()) {
@@ -109,7 +118,6 @@ fun ReportWasteScreen(
         }
     }
 
-    // Intercept back actions when user has unpersisted input
     val handleBackPress = {
         if (formState.hasEnteredContent) {
             showLeaveConfirmDialog = true
@@ -120,7 +128,6 @@ fun ReportWasteScreen(
 
     BackHandler(onBack = handleBackPress)
 
-    // Launchers for Camera TakePicture and Photo Picker
     val takePictureLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
     ) { success ->
@@ -141,7 +148,7 @@ fun ReportWasteScreen(
     }
 
     Scaffold(
-        snackbarHost = { androidx.compose.material3.SnackbarHost(snackbarHostState) },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -190,7 +197,6 @@ fun ReportWasteScreen(
                 .padding(innerPadding)
                 .background(MaterialTheme.colorScheme.background)
         ) {
-            // Stage Indicator Header Stepper
             StageStepperHeader(
                 currentStage = formState.currentStage,
                 onStageClick = { stage ->
@@ -242,12 +248,34 @@ fun ReportWasteScreen(
                     }
 
                     ReportFormStage.REVIEW -> {
-                        ReviewStageContent(formState = formState)
+                        ReviewStageContent(
+                            formState = formState,
+                            submissionState = submissionState,
+                            duplicateMatches = duplicateMatches,
+                            onSubmitReport = { previousCaseId ->
+                                viewModel.submitReport(
+                                    previousCaseId = previousCaseId,
+                                    onRequireAuth = { showAuthDialog = true },
+                                    onSuccessConfirmed = { caseId ->
+                                        confirmedServerCaseId = caseId
+                                    }
+                                )
+                            },
+                            onConfirmExistingCase = { caseId ->
+                                viewModel.confirmExistingCase(
+                                    caseId = caseId,
+                                    onRequireAuth = { showAuthDialog = true },
+                                    onSuccessConfirmed = { confirmedCaseId ->
+                                        confirmedServerCaseId = confirmedCaseId
+                                    }
+                                )
+                            }
+                        )
                     }
                 }
             }
 
-            // Bottom Navigation Actions (Back / Next Step)
+            // Bottom Navigation Actions
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -298,7 +326,7 @@ fun ReportWasteScreen(
         }
     }
 
-    // Confirmation dialog when attempting to leave with unpersisted edits
+    // Leave Confirmation Dialog
     if (showLeaveConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showLeaveConfirmDialog = false },
@@ -338,6 +366,61 @@ fun ReportWasteScreen(
             dismissButton = {
                 TextButton(onClick = { showLeaveConfirmDialog = false }) {
                     Text(text = stringResource(R.string.report_leave_confirm_keep))
+                }
+            }
+        )
+    }
+
+    // Auth Dialog for Guests attempting to Submit
+    if (showAuthDialog) {
+        AuthDialog(
+            onDismiss = { showAuthDialog = false },
+            onAuthSuccess = {
+                showAuthDialog = false
+                viewModel.submitReport(
+                    onRequireAuth = { showAuthDialog = true },
+                    onSuccessConfirmed = { caseId ->
+                        confirmedServerCaseId = caseId
+                    }
+                )
+            }
+        )
+    }
+
+    // Server Confirmed Submission Success Alert
+    confirmedServerCaseId?.let { serverCaseId ->
+        AlertDialog(
+            onDismissRequest = {
+                confirmedServerCaseId = null
+                onBackClick()
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = Color(0xFF2E7D32)
+                )
+            },
+            title = {
+                Text(
+                    text = "Report Confirmed & Submitted",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text(
+                    text = "Server Case ID: #$serverCaseId\n\nYour report is confirmed by the backend and is now under review by municipal coordinators. You can track status updates in Activity.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        confirmedServerCaseId = null
+                        onBackClick()
+                    }
+                ) {
+                    Text("View in Activity", fontWeight = FontWeight.Bold)
                 }
             }
         )
@@ -566,7 +649,6 @@ private fun DetailsAndLocationStageContent(
 ) {
     val context = LocalContext.current
 
-    // Speech recognition activity launcher
     val speechLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -594,7 +676,6 @@ private fun DetailsAndLocationStageContent(
         verticalArrangement = Arrangement.spacedBy(20.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        // 1. Waste Category Selector
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 text = stringResource(R.string.report_category_section_title),
@@ -666,7 +747,6 @@ private fun DetailsAndLocationStageContent(
             }
         }
 
-        // 2. Safety Warning Card for Hazardous Waste
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -718,7 +798,6 @@ private fun DetailsAndLocationStageContent(
             }
         }
 
-        // 3. Estimated Waste Size
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 text = "${stringResource(R.string.report_size_title)} ${stringResource(R.string.report_size_subtitle)}",
@@ -746,7 +825,6 @@ private fun DetailsAndLocationStageContent(
             }
         }
 
-        // 4. Description Field + Voice Input Button
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
                 text = stringResource(R.string.report_description_title),
@@ -781,7 +859,6 @@ private fun DetailsAndLocationStageContent(
             )
         }
 
-        // 5. Access / Landmark Note
         Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
                 text = stringResource(R.string.report_access_note_title),
@@ -798,7 +875,6 @@ private fun DetailsAndLocationStageContent(
             )
         }
 
-        // 6. Pin Location on Map
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 text = stringResource(R.string.report_location_section_title),
@@ -864,7 +940,15 @@ private fun DetailsAndLocationStageContent(
 }
 
 @Composable
-private fun ReviewStageContent(formState: ReportFormState) {
+private fun ReviewStageContent(
+    formState: ReportFormState,
+    submissionState: SubmissionState,
+    duplicateMatches: List<DuplicateMatchItem>,
+    onSubmitReport: (String?) -> Unit,
+    onConfirmExistingCase: (String) -> Unit
+) {
+    var userConsentChecked by remember { mutableStateOf(false) }
+
     Column(
         verticalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.fillMaxWidth()
@@ -972,7 +1056,98 @@ private fun ReviewStageContent(formState: ReportFormState) {
             }
         }
 
-        // Section 5 Persistence Notice
+        // Section 8: Duplicate Detection Matches Suggestions Card
+        if (duplicateMatches.isNotEmpty()) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer
+                ),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Nearby Active Reports Found",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                    }
+
+                    Text(
+                        text = "We found existing reports nearby. You can confirm an existing report to add your voice, or report a new occurrence if waste has returned.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+                    )
+
+                    duplicateMatches.forEach { match ->
+                        val isCleanedSite = match.caseReport.status == CaseStatus.VERIFIED_CLEAN
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surface
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Text(
+                                    text = match.matchReason,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Text(
+                                    text = "${match.caseReport.category} • ${match.caseReport.approximateArea}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                                )
+
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    if (isCleanedSite) {
+                                        Button(
+                                            onClick = { onSubmitReport(match.caseReport.caseId) },
+                                            modifier = Modifier.weight(1f),
+                                            shape = RoundedCornerShape(8.dp)
+                                        ) {
+                                            Text("Waste Has Returned", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    } else {
+                                        Button(
+                                            onClick = { onConfirmExistingCase(match.caseReport.caseId) },
+                                            modifier = Modifier.weight(1f),
+                                            shape = RoundedCornerShape(8.dp)
+                                        ) {
+                                            Text("Looks Like Same Waste", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Privacy & Map Sharing Notice
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -993,24 +1168,108 @@ private fun ReviewStageContent(formState: ReportFormState) {
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = stringResource(R.string.report_review_disclaimer),
+                    text = "This report will be shared with authorised coordinators. A privacy-safe summary location will appear on the local community map.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        // Primary Action (Disabled until Section 5 draft persistence)
+        // Mandatory User Consent Checkbox
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { userConsentChecked = !userConsentChecked }
+                .padding(vertical = 4.dp)
+        ) {
+            Checkbox(
+                checked = userConsentChecked,
+                onCheckedChange = { userConsentChecked = it }
+            )
+            Text(
+                text = "I confirm these report details are accurate and understand that hazardous waste must not be handled by volunteers.",
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+
+        // Active Submission Progress State Status Banner
+        when (submissionState) {
+            is SubmissionState.UploadingPhoto -> {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "Uploading photo…", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+
+            is SubmissionState.FinalisingCase -> {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "Finalising case registration…", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+
+            is SubmissionState.QueuedForUpload -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.tertiaryContainer)
+                        .padding(10.dp)
+                ) {
+                    Text(
+                        text = "Queued for upload - Has not reached SaafLoop yet. WorkManager will retry when online.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
+            is SubmissionState.NeedsAttention -> {
+                Text(
+                    text = submissionState.errorReason,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            else -> {}
+        }
+
+        // Primary Action: "Submit as New Independent Report"
         Button(
-            onClick = { /* Draft saving arrives in Section 5 */ },
-            enabled = false,
+            onClick = { onSubmitReport(null) },
+            enabled = userConsentChecked && formState.isValid && submissionState !is SubmissionState.UploadingPhoto && submissionState !is SubmissionState.FinalisingCase,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp),
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            )
         ) {
+            Icon(
+                imageVector = Icons.Default.Send,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = stringResource(R.string.report_draft_disabled_btn),
+                text = if (duplicateMatches.isNotEmpty()) "Submit as New Separate Report" else "Submit Report",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )

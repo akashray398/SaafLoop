@@ -8,6 +8,7 @@ import com.example.saafloop.core.model.CaseStatus
 import com.example.saafloop.core.util.PhotoMetadataUtils
 import com.google.firebase.FirebaseApp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.storage.FirebaseStorage
@@ -22,7 +23,8 @@ import java.util.UUID
 
 interface RemoteCaseRepository {
     fun isFirebaseConfigured(): Boolean
-    suspend fun submitCase(draft: ReportDraftEntity): Result<String>
+    suspend fun submitCase(draft: ReportDraftEntity, previousCaseId: String? = null): Result<String>
+    suspend fun confirmExistingCase(caseId: String, draft: ReportDraftEntity): Result<String>
     fun observeUserCases(uid: String): Flow<List<CaseReport>>
     fun observePublicCases(): Flow<List<CaseReport>>
 }
@@ -37,7 +39,10 @@ class RemoteCaseRepositoryImpl(private val context: Context) : RemoteCaseReposit
         }
     }
 
-    override suspend fun submitCase(draft: ReportDraftEntity): Result<String> = withContext(Dispatchers.IO) {
+    override suspend fun submitCase(
+        draft: ReportDraftEntity,
+        previousCaseId: String?
+    ): Result<String> = withContext(Dispatchers.IO) {
         if (!isFirebaseConfigured()) {
             return@withContext Result.failure(
                 IllegalStateException("Firebase backend is unconfigured in local environment. Please see firebase_setup_guide.artifact.md")
@@ -52,10 +57,25 @@ class RemoteCaseRepositoryImpl(private val context: Context) : RemoteCaseReposit
             val firestore = FirebaseFirestore.getInstance()
             val storage = FirebaseStorage.getInstance()
 
+            // 1. Idempotency Check: Prevent duplicate case creation on network retry or timeout
+            if (draft.idempotencyKey.isNotBlank()) {
+                val existingQuery = firestore.collection("cases")
+                    .whereEqualTo("authorUid", currentUser.uid)
+                    .whereEqualTo("idempotencyKey", draft.idempotencyKey)
+                    .get()
+                    .await()
+
+                if (!existingQuery.isEmpty) {
+                    val existingDoc = existingQuery.documents.first()
+                    val existingCaseId = existingDoc.getString("caseId") ?: existingDoc.id
+                    return@withContext Result.success(existingCaseId)
+                }
+            }
+
             val caseId = "case_${UUID.randomUUID()}"
             var remoteStoragePath: String? = null
 
-            // 1. Upload photo if present (with EXIF stripping)
+            // 2. Upload photo if present (with EXIF stripping)
             val photoPath = draft.photoPath
             if (!photoPath.isNullOrBlank()) {
                 val rawFile = File(photoPath)
@@ -69,7 +89,15 @@ class RemoteCaseRepositoryImpl(private val context: Context) : RemoteCaseReposit
                 }
             }
 
-            // 2. Write case document to Firestore /cases/{caseId}
+            // 3. Write case document to Firestore /cases/{caseId}
+            val initialTimeline = listOf(
+                hashMapOf(
+                    "status" to CaseStatus.SUBMITTED.name,
+                    "message" to if (!previousCaseId.isNullOrBlank()) "New occurrence reported at previously cleaned site" else "Report submitted by resident",
+                    "timestamp" to System.currentTimeMillis()
+                )
+            )
+
             val caseData = hashMapOf(
                 "caseId" to caseId,
                 "authorUid" to currentUser.uid,
@@ -85,6 +113,9 @@ class RemoteCaseRepositoryImpl(private val context: Context) : RemoteCaseReposit
                 "isHazardousSuspected" to draft.isHazardousSuspected,
                 "photoStoragePath" to remoteStoragePath,
                 "idempotencyKey" to draft.idempotencyKey,
+                "previousCaseId" to previousCaseId,
+                "confirmationsCount" to 1,
+                "timeline" to initialTimeline,
                 "createdAt" to System.currentTimeMillis(),
                 "updatedAt" to System.currentTimeMillis()
             )
@@ -93,6 +124,53 @@ class RemoteCaseRepositoryImpl(private val context: Context) : RemoteCaseReposit
                 .document(caseId)
                 .set(caseData)
                 .await()
+
+            Result.success(caseId)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    override suspend fun confirmExistingCase(
+        caseId: String,
+        draft: ReportDraftEntity
+    ): Result<String> = withContext(Dispatchers.IO) {
+        if (!isFirebaseConfigured()) {
+            return@withContext Result.failure(
+                IllegalStateException("Firebase backend is unconfigured in local environment")
+            )
+        }
+
+        val auth = FirebaseAuth.getInstance()
+        val currentUser = auth.currentUser
+            ?: return@withContext Result.failure(IllegalStateException("Must be signed in to confirm an existing case"))
+
+        try {
+            val firestore = FirebaseFirestore.getInstance()
+            val confirmationId = "conf_${currentUser.uid}_$caseId"
+
+            val confRef = firestore.collection("cases")
+                .document(caseId)
+                .collection("confirmations")
+                .document(confirmationId)
+
+            val existingConf = confRef.get().await()
+            if (!existingConf.exists()) {
+                val confData = hashMapOf(
+                    "confirmationId" to confirmationId,
+                    "caseId" to caseId,
+                    "authorUid" to currentUser.uid,
+                    "idempotencyKey" to draft.idempotencyKey,
+                    "createdAt" to System.currentTimeMillis()
+                )
+                confRef.set(confData).await()
+
+                // Increment confirmations count on parent case
+                firestore.collection("cases")
+                    .document(caseId)
+                    .update("confirmationsCount", FieldValue.increment(1))
+                    .await()
+            }
 
             Result.success(caseId)
         } catch (e: Exception) {
