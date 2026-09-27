@@ -897,39 +897,52 @@ private fun DetailsAndLocationStageContent(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
+                    com.example.saafloop.core.ui.MapLibreMapView(
+                        latitude = formState.latitude,
+                        longitude = formState.longitude,
+                        zoom = 14.0,
+                        modifier = Modifier.fillMaxSize()
+                    )
+
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.PinDrop,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(36.dp)
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.PinDrop,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = formState.locationName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                         Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = formState.locationName,
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedButton(
                                 onClick = {
                                     onLocationUpdated(28.6139, 77.2090, "Central District")
                                 },
-                                shape = RoundedCornerShape(10.dp)
+                                shape = RoundedCornerShape(8.dp)
                             ) {
-                                Text(text = "Central Zone")
+                                Text(text = "Central Zone", fontSize = 11.sp)
                             }
                             OutlinedButton(
                                 onClick = {
                                     onLocationUpdated(28.6500, 77.2100, "North Zone")
                                 },
-                                shape = RoundedCornerShape(10.dp)
+                                shape = RoundedCornerShape(8.dp)
                             ) {
-                                Text(text = "North Zone")
+                                Text(text = "North Zone", fontSize = 11.sp)
                             }
                         }
                     }

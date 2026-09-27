@@ -3,11 +3,12 @@ package com.example.saafloop.feature.explore
 import android.app.Application
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Geocoder
 import android.location.LocationManager
+import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.saafloop.BuildConfig
 import com.example.saafloop.core.data.RemoteCaseRepository
 import com.example.saafloop.core.data.RemoteCaseRepositoryImpl
 import com.example.saafloop.core.model.CaseReport
@@ -17,6 +18,7 @@ import com.example.saafloop.feature.explore.model.MapUiState
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -56,28 +58,76 @@ class ExploreViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun checkMapProviderAvailability() {
-        val apiKey: String = BuildConfig.MAPS_API_KEY
-        val isKeyConfigured = apiKey.isNotBlank() &&
-                !apiKey.equals("DEFAULT_MAPS_KEY_MISSING", ignoreCase = true) &&
-                !apiKey.contains("YOUR_GOOGLE_MAPS_API_KEY", ignoreCase = true)
-
         _mapUiState.value = MapUiState.Ready(
             cameraRegion = defaultRegion,
-            isMapsSdkAvailable = isKeyConfigured
+            isMapsSdkAvailable = true
         )
     }
 
-    fun onSearchQueryChanged(query: String) {
+    /**
+     * Searches any city, state, or district name (e.g. "Bihar", "Patna", "Delhi", "Mumbai")
+     * using Android's Geocoder service to update the map view position.
+     */
+    fun searchLocation(context: Context, query: String) {
         _searchQuery.value = query
-        if (query.isNotBlank()) {
-            val newRegion = when {
-                query.contains("north", ignoreCase = true) -> MapCameraRegion(28.6500, 77.2100, 14f, "North Zone")
-                query.contains("south", ignoreCase = true) -> MapCameraRegion(28.5500, 77.2100, 14f, "South Zone")
-                query.contains("east", ignoreCase = true) -> MapCameraRegion(28.6100, 77.2800, 14f, "East Zone")
-                query.contains("west", ignoreCase = true) -> MapCameraRegion(28.6100, 77.1200, 14f, "West Zone")
-                else -> MapCameraRegion(28.6139, 77.2090, 14f, query.trim())
+        if (query.isBlank()) return
+
+        when {
+            query.equals("north", ignoreCase = true) || query.equals("north zone", ignoreCase = true) -> {
+                updateCameraRegion(MapCameraRegion(28.6500, 77.2100, 14f, "North Zone"))
+                return
             }
-            updateCameraRegion(newRegion)
+            query.equals("south", ignoreCase = true) || query.equals("south zone", ignoreCase = true) -> {
+                updateCameraRegion(MapCameraRegion(28.5500, 77.2100, 14f, "South Zone"))
+                return
+            }
+            query.equals("east", ignoreCase = true) || query.equals("east zone", ignoreCase = true) -> {
+                updateCameraRegion(MapCameraRegion(28.6100, 77.2800, 14f, "East Zone"))
+                return
+            }
+            query.equals("west", ignoreCase = true) || query.equals("west zone", ignoreCase = true) -> {
+                updateCameraRegion(MapCameraRegion(28.6100, 77.1200, 14f, "West Zone"))
+                return
+            }
+            query.equals("central", ignoreCase = true) -> {
+                updateCameraRegion(MapCameraRegion(28.6139, 77.2090, 14f, "Central District"))
+                return
+            }
+        }
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val geocoder = Geocoder(context)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    geocoder.getFromLocationName(query, 1) { addresses ->
+                        val addr = addresses.firstOrNull()
+                        if (addr != null) {
+                            val newRegion = MapCameraRegion(
+                                latitude = addr.latitude,
+                                longitude = addr.longitude,
+                                zoom = 10f,
+                                regionName = addr.locality ?: addr.adminArea ?: query
+                            )
+                            updateCameraRegion(newRegion)
+                        }
+                    }
+                } else {
+                    @Suppress("DEPRECATION")
+                    val addresses = geocoder.getFromLocationName(query, 1)
+                    val addr = addresses?.firstOrNull()
+                    if (addr != null) {
+                        val newRegion = MapCameraRegion(
+                            latitude = addr.latitude,
+                            longitude = addr.longitude,
+                            zoom = 10f,
+                            regionName = addr.locality ?: addr.adminArea ?: query
+                        )
+                        updateCameraRegion(newRegion)
+                    }
+                }
+            } catch (_: Exception) {
+                // Safe fallback
+            }
         }
     }
 

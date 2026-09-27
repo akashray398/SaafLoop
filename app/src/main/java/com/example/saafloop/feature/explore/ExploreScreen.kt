@@ -46,7 +46,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,7 +55,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -69,14 +67,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.saafloop.R
 import com.example.saafloop.core.model.CaseReport
+import com.example.saafloop.core.ui.MapLibreMapView
 import com.example.saafloop.feature.explore.model.LocationUnavailableReason
 import com.example.saafloop.feature.explore.model.MapCameraRegion
 import com.example.saafloop.feature.explore.model.MapUiState
-import com.google.android.gms.maps.model.CameraPosition
-import com.google.android.gms.maps.model.LatLng
-import com.google.maps.android.compose.GoogleMap
-import com.google.maps.android.compose.MapUiSettings
-import com.google.maps.android.compose.rememberCameraPositionState
 
 @Composable
 fun ExploreScreen(
@@ -87,10 +81,10 @@ fun ExploreScreen(
     val context = LocalContext.current
     val mapUiState by exploreViewModel.mapUiState.collectAsState()
     val searchQuery by exploreViewModel.searchQuery.collectAsState()
+    val publicCases by exploreViewModel.publicCasesState.collectAsState()
 
     var showPermissionInfoDialog by remember { mutableStateOf(false) }
 
-    // Launcher for foreground location permissions
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -116,7 +110,7 @@ fun ExploreScreen(
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(
                 value = searchQuery,
-                onValueChange = { exploreViewModel.onSearchQueryChanged(it) },
+                onValueChange = { exploreViewModel.searchLocation(context, it) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .semantics { contentDescription = "Search area or district" },
@@ -132,7 +126,7 @@ fun ExploreScreen(
                 },
                 trailingIcon = {
                     if (searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { exploreViewModel.onSearchQueryChanged("") }) {
+                        IconButton(onClick = { exploreViewModel.searchLocation(context, "") }) {
                             Icon(
                                 imageVector = Icons.Default.Clear,
                                 contentDescription = "Clear search"
@@ -140,6 +134,12 @@ fun ExploreScreen(
                         }
                     }
                 },
+                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                    imeAction = androidx.compose.ui.text.input.ImeAction.Search
+                ),
+                keyboardActions = androidx.compose.foundation.text.KeyboardActions(
+                    onSearch = { exploreViewModel.searchLocation(context, searchQuery) }
+                ),
                 singleLine = true,
                 shape = RoundedCornerShape(12.dp),
                 colors = OutlinedTextFieldDefaults.colors(
@@ -162,7 +162,7 @@ fun ExploreScreen(
                                 else
                                     MaterialTheme.colorScheme.surfaceVariant
                             )
-                            .clickable { exploreViewModel.onSearchQueryChanged(zone) }
+                            .clickable { exploreViewModel.searchLocation(context, zone) }
                             .padding(horizontal = 12.dp, vertical = 6.dp)
                     ) {
                         Text(
@@ -201,23 +201,20 @@ fun ExploreScreen(
                 )
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
-                    text = stringResource(R.string.explore_banner_live_reports),
+                    text = "Map powered by 100% free OpenStreetMap + MapLibre. No API keys or paid services required.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onTertiaryContainer
                 )
             }
         }
 
-        // 3. Map View Container with Location FAB & Provider Handling
+        // 3. Map View Container with Location FAB (MapLibre + OpenStreetMap)
         val currentCameraRegion = when (val state = mapUiState) {
             is MapUiState.Ready -> state.cameraRegion
             is MapUiState.LocationUnavailable -> state.cameraRegion
             is MapUiState.MapProviderUnavailable -> state.cameraRegion
             else -> MapCameraRegion(28.6139, 77.2090, 13.5f, "Central District")
         }
-
-        val isSdkAvailable = (mapUiState as? MapUiState.Ready)?.isMapsSdkAvailable ?: false
-        val publicCases by exploreViewModel.publicCasesState.collectAsState()
 
         Box(
             modifier = Modifier
@@ -226,22 +223,21 @@ fun ExploreScreen(
                 .clip(RoundedCornerShape(20.dp))
                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(20.dp))
         ) {
-            if (isSdkAvailable) {
-                GoogleMapComponent(
-                    cameraRegion = currentCameraRegion,
-                    publicCases = publicCases
-                )
-            } else {
-                InteractiveFallbackMapView(cameraRegion = currentCameraRegion)
-            }
+            MapLibreMapView(
+                latitude = currentCameraRegion.latitude,
+                longitude = currentCameraRegion.longitude,
+                zoom = currentCameraRegion.zoom.toDouble(),
+                publicCases = publicCases,
+                modifier = Modifier.fillMaxSize()
+            )
 
             // "Use my location" Floating Action Button
             FloatingActionButton(
                 onClick = {
                     locationPermissionLauncher.launch(
                         arrayOf(
-                            Manifest.permission.ACCESS_COARSE_LOCATION,
-                            Manifest.permission.ACCESS_FINE_LOCATION
+                            android.Manifest.permission.ACCESS_COARSE_LOCATION,
+                            android.Manifest.permission.ACCESS_FINE_LOCATION
                         )
                     )
                 },
@@ -412,109 +408,6 @@ fun ExploreScreen(
                 }
             }
         )
-    }
-}
-
-@Composable
-private fun GoogleMapComponent(
-    cameraRegion: MapCameraRegion,
-    publicCases: List<CaseReport>
-) {
-    val cameraPositionState = rememberCameraPositionState {
-        position = CameraPosition.fromLatLngZoom(
-            LatLng(cameraRegion.latitude, cameraRegion.longitude),
-            cameraRegion.zoom
-        )
-    }
-
-    LaunchedEffect(cameraRegion) {
-        cameraPositionState.position = CameraPosition.fromLatLngZoom(
-            LatLng(cameraRegion.latitude, cameraRegion.longitude),
-            cameraRegion.zoom
-        )
-    }
-
-    GoogleMap(
-        modifier = Modifier.fillMaxSize(),
-        cameraPositionState = cameraPositionState,
-        uiSettings = MapUiSettings(
-            zoomControlsEnabled = false,
-            myLocationButtonEnabled = false,
-            mapToolbarEnabled = false
-        )
-    ) {
-        publicCases.forEach { caseReport ->
-            com.google.maps.android.compose.Marker(
-                state = com.google.maps.android.compose.rememberMarkerState(
-                    position = LatLng(caseReport.latitude, caseReport.longitude)
-                ),
-                title = caseReport.category,
-                snippet = "Status: ${caseReport.status.label} • ${caseReport.approximateArea}"
-            )
-        }
-    }
-}
-
-@Composable
-private fun InteractiveFallbackMapView(cameraRegion: MapCameraRegion) {
-    val primaryColor = MaterialTheme.colorScheme.primary
-    val secondaryColor = MaterialTheme.colorScheme.secondary
-    val gridColor = primaryColor.copy(alpha = 0.12f)
-
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
-        contentAlignment = Alignment.Center
-    ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val w = size.width
-            val h = size.height
-
-            // Draw map grid grid lines
-            var x = 0f
-            while (x < w) {
-                drawLine(gridColor, Offset(x, 0f), Offset(x, h), strokeWidth = 2f)
-                x += 60f
-            }
-            var y = 0f
-            while (y < h) {
-                drawLine(gridColor, Offset(0f, y), Offset(w, y), strokeWidth = 2f)
-                y += 60f
-            }
-
-            // Draw simulated road lines
-            drawLine(secondaryColor.copy(alpha = 0.25f), Offset(0f, h * 0.4f), Offset(w, h * 0.4f), strokeWidth = 8f)
-            drawLine(secondaryColor.copy(alpha = 0.25f), Offset(w * 0.5f, 0f), Offset(w * 0.5f, h), strokeWidth = 8f)
-
-            // Draw region indicator pin
-            drawCircle(primaryColor, radius = 24f, center = Offset(w * 0.5f, h * 0.4f))
-            drawCircle(Color.White, radius = 10f, center = Offset(w * 0.5f, h * 0.4f))
-        }
-
-        // Region Label Banner
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 12.dp)
-                .clip(RoundedCornerShape(20.dp))
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.9f))
-                .padding(horizontal = 16.dp, vertical = 6.dp)
-        ) {
-            Text(
-                text = cameraRegion.regionName,
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = stringResource(R.string.explore_fallback_map_sub),
-                style = MaterialTheme.typography.labelSmall,
-                fontSize = 10.sp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            )
-        }
     }
 }
 
