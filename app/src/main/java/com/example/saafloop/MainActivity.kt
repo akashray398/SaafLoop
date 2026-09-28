@@ -40,6 +40,8 @@ import com.example.saafloop.core.navigation.Screen
 import com.example.saafloop.core.navigation.bottomNavItems
 import com.example.saafloop.feature.activity.ActivityScreen
 import com.example.saafloop.feature.auth.AccessChoiceScreen
+import com.example.saafloop.feature.coordinator.CoordinatorDashboardScreen
+import com.example.saafloop.feature.coordinator.ReportReviewScreen
 import com.example.saafloop.feature.explore.ExploreScreen
 import com.example.saafloop.feature.home.HomeScreen
 import com.example.saafloop.feature.onboarding.OnboardingScreen
@@ -55,7 +57,6 @@ class MainActivity : ComponentActivity() {
 
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Initialize Core Splash Screen and hold until preferences state is loaded
         val splashScreen = installSplashScreen()
         splashScreen.setKeepOnScreenCondition {
             viewModel.uiState.value is MainUiState.Loading
@@ -69,9 +70,7 @@ class MainActivity : ComponentActivity() {
                 val uiState by viewModel.uiState.collectAsState()
 
                 when (val state = uiState) {
-                    is MainUiState.Loading -> {
-                        // Splash screen is kept visible by setKeepOnScreenCondition
-                    }
+                    is MainUiState.Loading -> {}
                     is MainUiState.Success -> {
                         SaafLoopAppContent(
                             initialState = state,
@@ -94,7 +93,6 @@ private fun SaafLoopAppContent(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Compute start destination once based on persistent state
     val startDestination = remember {
         when {
             !initialState.isOnboardingCompleted -> Screen.Onboarding.route
@@ -103,7 +101,6 @@ private fun SaafLoopAppContent(
         }
     }
 
-    // Only show top and bottom bars for main tab destinations
     val isMainTabScreen = currentRoute in bottomNavItems.map { it.route }
 
     Scaffold(
@@ -118,7 +115,7 @@ private fun SaafLoopAppContent(
                         )
                     },
                     actions = {
-                        IconButton(onClick = { /* Future Notifications workflow */ }) {
+                        IconButton(onClick = { /* Notifications workflow */ }) {
                             Icon(
                                 imageVector = Icons.Default.NotificationsNone,
                                 contentDescription = "Notifications",
@@ -268,6 +265,39 @@ private fun SaafLoopAppContent(
                             navController.navigate(Screen.AccessChoice.route) {
                                 popUpTo(Screen.Home.route) { inclusive = true }
                             }
+                        },
+                        onOpenCoordinatorDashboard = {
+                            navController.navigate(Screen.CoordinatorDashboard.route)
+                        }
+                    )
+                }
+
+                // Coordinator Dashboard Route
+                composable(Screen.CoordinatorDashboard.route) {
+                    CoordinatorDashboardScreen(
+                        onBackClick = {
+                            navController.popBackStack()
+                        },
+                        onReviewReport = { caseId ->
+                            navController.navigate(Screen.ReportReview.createRoute(caseId))
+                        }
+                    )
+                }
+
+                // Detailed Report Review Route
+                composable(
+                    route = Screen.ReportReview.route,
+                    arguments = listOf(
+                        androidx.navigation.navArgument("caseId") {
+                            type = androidx.navigation.NavType.StringType
+                        }
+                    )
+                ) { backStackEntry ->
+                    val caseId = backStackEntry.arguments?.getString("caseId") ?: ""
+                    ReportReviewScreen(
+                        caseId = caseId,
+                        onBackClick = {
+                            navController.popBackStack()
                         }
                     )
                 }

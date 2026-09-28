@@ -6,7 +6,9 @@ import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.SupervisorAccount
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
@@ -17,6 +19,10 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     data object Activity : Screen("activity", "Activity", Icons.AutoMirrored.Filled.List)
     data object Profile : Screen("profile", "Profile", Icons.Default.AccountCircle)
     data object ReportWaste : Screen("report_waste", "Report Waste", Icons.Default.Home)
+    data object CoordinatorDashboard : Screen("coordinator_dashboard", "Coordinator Dashboard", Icons.Default.SupervisorAccount)
+    data object ReportReview : Screen("report_review/{caseId}", "Review Report", Icons.Default.RateReview) {
+        fun createRoute(caseId: String) = "report_review/$caseId"
+    }
 }
 
 val bottomNavItems = listOf(
