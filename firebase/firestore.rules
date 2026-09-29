@@ -56,10 +56,20 @@ service cloud.firestore {
       }
     }
 
-    // 4. Organisations
-    match /organisations/{orgId} {
+    // 4. Community Activities & Drives
+    match /community_activities/{activityId} {
       allow read: if isSignedIn();
-      allow write: if false;
+      allow create, update: if isSignedIn();
+
+      match /participants/{participantId} {
+        allow read, create, update, delete: if isSignedIn();
+      }
+    }
+
+    // 5. Organizations
+    match /organizations/{orgId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
     }
 
     match /{document=**} {

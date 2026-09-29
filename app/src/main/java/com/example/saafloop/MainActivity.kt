@@ -40,6 +40,9 @@ import com.example.saafloop.core.navigation.Screen
 import com.example.saafloop.core.navigation.bottomNavItems
 import com.example.saafloop.feature.activity.ActivityScreen
 import com.example.saafloop.feature.auth.AccessChoiceScreen
+import com.example.saafloop.feature.community.ActivityDetailScreen
+import com.example.saafloop.feature.community.CommunityHomeScreen
+import com.example.saafloop.feature.community.CreateActivityScreen
 import com.example.saafloop.feature.coordinator.CoordinatorDashboardScreen
 import com.example.saafloop.feature.coordinator.ReportReviewScreen
 import com.example.saafloop.feature.explore.ExploreScreen
@@ -240,6 +243,45 @@ private fun SaafLoopAppContent(
                     ExploreScreen(
                         onReportWasteClick = {
                             navController.navigate(Screen.ReportWaste.route)
+                        }
+                    )
+                }
+
+                // Community Home Route
+                composable(Screen.CommunityHome.route) {
+                    CommunityHomeScreen(
+                        onOpenActivityDetail = { activityId ->
+                            navController.navigate(Screen.ActivityDetail.createRoute(activityId))
+                        },
+                        onCreateActivityClick = {
+                            navController.navigate(Screen.CreateActivity.route)
+                        }
+                    )
+                }
+
+                // Community Activity Detail Route
+                composable(
+                    route = Screen.ActivityDetail.route,
+                    arguments = listOf(
+                        androidx.navigation.navArgument("activityId") {
+                            type = androidx.navigation.NavType.StringType
+                        }
+                    )
+                ) { backStackEntry ->
+                    val activityId = backStackEntry.arguments?.getString("activityId") ?: ""
+                    ActivityDetailScreen(
+                        activityId = activityId,
+                        onBackClick = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+
+                // Propose Community Drive Route
+                composable(Screen.CreateActivity.route) {
+                    CreateActivityScreen(
+                        onBackClick = {
+                            navController.popBackStack()
                         }
                     )
                 }
