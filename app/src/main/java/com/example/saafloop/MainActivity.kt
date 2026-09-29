@@ -43,6 +43,8 @@ import com.example.saafloop.feature.auth.AccessChoiceScreen
 import com.example.saafloop.feature.coordinator.CoordinatorDashboardScreen
 import com.example.saafloop.feature.coordinator.ReportReviewScreen
 import com.example.saafloop.feature.explore.ExploreScreen
+import com.example.saafloop.feature.fieldops.FieldDashboardScreen
+import com.example.saafloop.feature.fieldops.FieldTaskDetailScreen
 import com.example.saafloop.feature.home.HomeScreen
 import com.example.saafloop.feature.onboarding.OnboardingScreen
 import com.example.saafloop.feature.profile.ProfileScreen
@@ -268,6 +270,9 @@ private fun SaafLoopAppContent(
                         },
                         onOpenCoordinatorDashboard = {
                             navController.navigate(Screen.CoordinatorDashboard.route)
+                        },
+                        onOpenFieldDashboard = {
+                            navController.navigate(Screen.FieldDashboard.route)
                         }
                     )
                 }
@@ -296,6 +301,36 @@ private fun SaafLoopAppContent(
                     val caseId = backStackEntry.arguments?.getString("caseId") ?: ""
                     ReportReviewScreen(
                         caseId = caseId,
+                        onBackClick = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+
+                // Field Operations Dashboard Route
+                composable(Screen.FieldDashboard.route) {
+                    FieldDashboardScreen(
+                        onBackClick = {
+                            navController.popBackStack()
+                        },
+                        onOpenTaskDetail = { taskId ->
+                            navController.navigate(Screen.FieldTaskDetail.createRoute(taskId))
+                        }
+                    )
+                }
+
+                // Field Task Detail & Execution Route
+                composable(
+                    route = Screen.FieldTaskDetail.route,
+                    arguments = listOf(
+                        androidx.navigation.navArgument("taskId") {
+                            type = androidx.navigation.NavType.StringType
+                        }
+                    )
+                ) { backStackEntry ->
+                    val taskId = backStackEntry.arguments?.getString("taskId") ?: ""
+                    FieldTaskDetailScreen(
+                        taskId = taskId,
                         onBackClick = {
                             navController.popBackStack()
                         }

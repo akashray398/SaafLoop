@@ -3,6 +3,7 @@ package com.example.saafloop.core.navigation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
@@ -22,6 +23,10 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     data object CoordinatorDashboard : Screen("coordinator_dashboard", "Coordinator Dashboard", Icons.Default.SupervisorAccount)
     data object ReportReview : Screen("report_review/{caseId}", "Review Report", Icons.Default.RateReview) {
         fun createRoute(caseId: String) = "report_review/$caseId"
+    }
+    data object FieldDashboard : Screen("field_dashboard", "Field Operations", Icons.Default.Build)
+    data object FieldTaskDetail : Screen("field_task_detail/{taskId}", "Task Detail", Icons.Default.Build) {
+        fun createRoute(taskId: String) = "field_task_detail/$taskId"
     }
 }
 

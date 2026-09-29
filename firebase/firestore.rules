@@ -28,7 +28,7 @@ service cloud.firestore {
 
       allow update: if isSignedIn();
 
-      // Confirmations subcollection - Single confirmation per resident enforcement
+      // Confirmations subcollection
       match /confirmations/{confirmationId} {
         allow read: if isSignedIn();
         allow create: if isSignedIn()
@@ -36,9 +36,27 @@ service cloud.firestore {
           && confirmationId == 'conf_' + request.auth.uid + '_' + caseId;
         allow update, delete: if false;
       }
+
+      // Audit Events subcollection
+      match /audit_events/{eventId} {
+        allow read: if isSignedIn();
+        allow create: if isSignedIn();
+        allow update, delete: if false;
+      }
     }
 
-    // 3. Organisations
+    // 3. Field Tasks & Operations
+    match /tasks/{taskId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn();
+
+      match /comments/{commentId} {
+        allow read, create: if isSignedIn();
+        allow update, delete: if false;
+      }
+    }
+
+    // 4. Organisations
     match /organisations/{orgId} {
       allow read: if isSignedIn();
       allow write: if false;

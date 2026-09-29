@@ -19,18 +19,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AssignmentTurnedIn
+import androidx.compose.material.icons.filled.AssignmentInd
 import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.MergeType
-import androidx.compose.material.icons.filled.Photo
 import androidx.compose.material.icons.filled.PinDrop
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -63,12 +58,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.saafloop.core.data.TaskRepository
+import com.example.saafloop.core.data.TaskRepositoryImpl
 import com.example.saafloop.core.model.AuditEvent
 import com.example.saafloop.core.model.CasePriority
 import com.example.saafloop.core.model.CaseReport
@@ -76,7 +71,6 @@ import com.example.saafloop.core.model.CaseStatus
 import com.example.saafloop.core.model.IssueSeverity
 import com.example.saafloop.core.ui.MapLibreMapView
 import com.example.saafloop.core.util.PriorityCalculator
-import com.example.saafloop.feature.report.model.WasteCategory
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -106,6 +100,7 @@ fun ReportReviewScreen(
     var showVerifyDialog by remember { mutableStateOf(false) }
     var showRejectDialog by remember { mutableStateOf(false) }
     var showRequestInfoDialog by remember { mutableStateOf(false) }
+    var showAssignTaskDialog by remember { mutableStateOf(false) }
 
     var verificationNotes by remember { mutableStateOf("") }
     var rejectionReason by remember { mutableStateOf("Spam or Invalid Information") }
@@ -397,7 +392,7 @@ fun ReportReviewScreen(
                     OutlinedButton(
                         onClick = { showRequestInfoDialog = true },
                         modifier = Modifier
-                            .weight(1.2f)
+                            .weight(1.1f)
                             .height(48.dp),
                         shape = RoundedCornerShape(10.dp)
                     ) {
@@ -411,26 +406,57 @@ fun ReportReviewScreen(
                     }
 
                     Button(
-                        onClick = { showVerifyDialog = true },
+                        onClick = {
+                            if (report.status == CaseStatus.VERIFIED) {
+                                showAssignTaskDialog = true
+                            } else {
+                                showVerifyDialog = true
+                            }
+                        },
                         modifier = Modifier
                             .weight(1.3f)
                             .height(48.dp),
                         shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF2E7D32)
+                            containerColor = if (report.status == CaseStatus.VERIFIED) MaterialTheme.colorScheme.primary else Color(0xFF2E7D32)
                         )
                     ) {
                         Icon(
-                            imageVector = Icons.Default.CheckCircle,
+                            imageVector = if (report.status == CaseStatus.VERIFIED) Icons.Default.AssignmentInd else Icons.Default.CheckCircle,
                             contentDescription = null,
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Verify", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        Text(
+                            text = if (report.status == CaseStatus.VERIFIED) "Assign Task" else "Verify",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
         }
+    }
+
+    // Assign Task Dialog
+    if (showAssignTaskDialog && report != null) {
+        val taskRepo = remember { TaskRepositoryImpl(coordinatorViewModel.getApplication()) }
+        TaskAssignmentDialog(
+            caseReport = report,
+            onDismiss = { showAssignTaskDialog = false },
+            onTaskAssigned = { newTask ->
+                coroutineScope.launch {
+                    val result = taskRepo.createAndAssignTask(newTask)
+                    result.onSuccess {
+                        showAssignTaskDialog = false
+                        snackbarHostState.showSnackbar("Task assigned to ${newTask.assignedToName}!")
+                    }.onFailure { err ->
+                        showAssignTaskDialog = false
+                        snackbarHostState.showSnackbar(err.message ?: "Failed to assign task")
+                    }
+                }
+            }
+        )
     }
 
     // Verify Report Confirmation Modal
