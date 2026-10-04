@@ -20,33 +20,36 @@ import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
 
-private const val OSM_STYLE_JSON = """
+private const val CARTO_VOYAGER_STYLE_JSON = """
 {
   "version": 8,
   "sources": {
-    "osm-raster-tiles": {
+    "carto-raster-tiles": {
       "type": "raster",
       "tiles": [
-        "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+        "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+        "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+        "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
+        "https://d.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
       ],
       "tileSize": 256,
-      "attribution": "© OpenStreetMap contributors"
+      "attribution": "© OpenStreetMap contributors, © CARTO"
     }
   },
   "layers": [
     {
-      "id": "osm-raster-layer",
+      "id": "carto-raster-layer",
       "type": "raster",
-      "source": "osm-raster-tiles",
+      "source": "carto-raster-tiles",
       "minzoom": 0,
-      "maxzoom": 19
+      "maxzoom": 20
     }
   ]
 }
 """
 
 /**
- * 100% Free, OpenSource MapLibre + OpenStreetMap Compose Map View.
+ * 100% Free, OpenSource MapLibre + CARTO Voyager OpenStreetMap Basemap View.
  * Supports rendering custom civic map markers, clustering, click handlers, and camera positioning.
  */
 @Composable
@@ -111,7 +114,7 @@ fun MapLibreMapView(
         factory = { mapView },
         update = { view ->
             view.getMapAsync { map ->
-                map.setStyle(Style.Builder().fromJson(OSM_STYLE_JSON)) { _ ->
+                map.setStyle(Style.Builder().fromJson(CARTO_VOYAGER_STYLE_JSON)) { _ ->
                     map.animateCamera(
                         CameraUpdateFactory.newCameraPosition(
                             CameraPosition.Builder()
