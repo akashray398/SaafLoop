@@ -250,7 +250,7 @@ fun ReportReviewScreen(
                                     latitude = report.latitude,
                                     longitude = report.longitude,
                                     zoom = 14.5,
-                                    publicCases = listOf(report),
+                                     publicCases = listOf(report),
                                     modifier = Modifier.fillMaxSize()
                                 )
                             }

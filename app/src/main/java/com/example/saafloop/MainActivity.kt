@@ -243,6 +243,18 @@ private fun SaafLoopAppContent(
                     ExploreScreen(
                         onReportWasteClick = {
                             navController.navigate(Screen.ReportWaste.route)
+                        },
+                        onReportWasteAtLocation = { lat, lng, areaName ->
+                            navController.navigate("${Screen.ReportWaste.route}?lat=$lat&lng=$lng&locationName=$areaName")
+                        },
+                        onOpenReportDetail = { caseId ->
+                            navController.navigate(Screen.ReportReview.createRoute(caseId))
+                        },
+                        onOpenTaskDetail = { taskId ->
+                            navController.navigate(Screen.FieldTaskDetail.createRoute(taskId))
+                        },
+                        onOpenActivityDetail = { activityId ->
+                            navController.navigate(Screen.ActivityDetail.createRoute(activityId))
                         }
                     )
                 }
@@ -379,11 +391,26 @@ private fun SaafLoopAppContent(
                     )
                 }
 
-                // Report Waste Route (with optional ?draftId parameter)
+                // Report Waste Route (with optional parameters)
                 composable(
-                    route = "${Screen.ReportWaste.route}?draftId={draftId}",
+                    route = "${Screen.ReportWaste.route}?draftId={draftId}&lat={lat}&lng={lng}&locationName={locationName}",
                     arguments = listOf(
                         androidx.navigation.navArgument("draftId") {
+                            type = androidx.navigation.NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        },
+                        androidx.navigation.navArgument("lat") {
+                            type = androidx.navigation.NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        },
+                        androidx.navigation.navArgument("lng") {
+                            type = androidx.navigation.NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        },
+                        androidx.navigation.navArgument("locationName") {
                             type = androidx.navigation.NavType.StringType
                             nullable = true
                             defaultValue = null
@@ -391,11 +418,17 @@ private fun SaafLoopAppContent(
                     )
                 ) { backStackEntry ->
                     val draftId = backStackEntry.arguments?.getString("draftId")
+                    val lat = backStackEntry.arguments?.getString("lat")?.toDoubleOrNull()
+                    val lng = backStackEntry.arguments?.getString("lng")?.toDoubleOrNull()
+                    val locationName = backStackEntry.arguments?.getString("locationName")
                     ReportWasteScreen(
                         onBackClick = {
                             navController.popBackStack()
                         },
-                        draftId = draftId
+                        draftId = draftId,
+                        initialLat = lat,
+                        initialLng = lng,
+                        initialLocationName = locationName
                     )
                 }
             }

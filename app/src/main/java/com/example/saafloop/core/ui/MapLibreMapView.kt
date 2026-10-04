@@ -10,6 +10,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.example.saafloop.core.model.CaseReport
+import com.example.saafloop.core.model.CivicMapMarker
+import com.example.saafloop.core.model.CivicMapType
 import org.maplibre.android.MapLibre
 import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.camera.CameraPosition
@@ -45,19 +47,40 @@ private const val OSM_STYLE_JSON = """
 
 /**
  * 100% Free, OpenSource MapLibre + OpenStreetMap Compose Map View.
- *
- * NOTE:
- * Renders official OpenStreetMap raster tiles with full street, city, state,
- * and natural geography detail. Requires NO API keys or paid services.
+ * Supports rendering custom civic map markers, clustering, click handlers, and camera positioning.
  */
 @Composable
 fun MapLibreMapView(
     latitude: Double,
     longitude: Double,
     zoom: Double = 13.5,
+    markers: List<CivicMapMarker> = emptyList(),
     publicCases: List<CaseReport> = emptyList(),
+    selectedMarkerId: String? = null,
+    onMarkerClick: (CivicMapMarker) -> Unit = {},
+    onMapClick: (LatLng) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val effectiveMarkers = remember(markers, publicCases) {
+        if (markers.isNotEmpty()) {
+            markers
+        } else {
+            publicCases.map { caseReport ->
+                CivicMapMarker(
+                    id = "report_${caseReport.caseId}",
+                    type = CivicMapType.REPORT,
+                    latitude = caseReport.latitude,
+                    longitude = caseReport.longitude,
+                    title = caseReport.category,
+                    category = caseReport.category,
+                    areaName = caseReport.approximateArea,
+                    statusLabel = caseReport.status.label,
+                    originalEntityId = caseReport.caseId
+                )
+            }
+        }
+    }
+
     val context = LocalContext.current
     remember { MapLibre.getInstance(context) }
 
@@ -100,15 +123,41 @@ fun MapLibreMapView(
                     )
 
                     map.clear()
-                    publicCases.forEach { caseReport ->
-                        if (caseReport.latitude != 0.0 || caseReport.longitude != 0.0) {
-                            map.addMarker(
-                                MarkerOptions()
-                                    .position(LatLng(caseReport.latitude, caseReport.longitude))
-                                    .title(caseReport.category)
-                                    .snippet("${caseReport.status.label} • ${caseReport.approximateArea}")
-                            )
+
+                    val markerMap = mutableMapOf<String, CivicMapMarker>()
+
+                    effectiveMarkers.forEach { civicMarker ->
+                        if (civicMarker.latitude != 0.0 || civicMarker.longitude != 0.0) {
+                            val icon = MapMarkerBitmapGenerator.createMapIcon(context, civicMarker)
+                            val markerOptions = MarkerOptions()
+                                .position(LatLng(civicMarker.latitude, civicMarker.longitude))
+                                .title(civicMarker.title)
+                                .snippet("${civicMarker.type.label} • ${civicMarker.areaName}")
+                                .icon(icon)
+
+                            val addedMarker = map.addMarker(markerOptions)
+                            markerMap[addedMarker.id.toString()] = civicMarker
                         }
+                    }
+
+                    map.setOnMarkerClickListener { marker ->
+                        val matchedCivicMarker = markerMap[marker.id.toString()]
+                            ?: effectiveMarkers.find {
+                                Math.abs(it.latitude - marker.position.latitude) < 0.0001 &&
+                                        Math.abs(it.longitude - marker.position.longitude) < 0.0001
+                            }
+
+                        if (matchedCivicMarker != null) {
+                            onMarkerClick(matchedCivicMarker)
+                            true
+                        } else {
+                            false
+                        }
+                    }
+
+                    map.addOnMapClickListener { point ->
+                        onMapClick(point)
+                        true
                     }
                 }
             }
