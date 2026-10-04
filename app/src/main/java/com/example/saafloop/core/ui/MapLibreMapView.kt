@@ -20,36 +20,34 @@ import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.maps.Style
 
-private const val CARTO_VOYAGER_STYLE_JSON = """
+private const val ESRI_WORLD_STREET_STYLE_JSON = """
 {
   "version": 8,
   "sources": {
-    "carto-raster-tiles": {
+    "esri-world-street-tiles": {
       "type": "raster",
       "tiles": [
-        "https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-        "https://b.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-        "https://c.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png",
-        "https://d.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png"
+        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}"
       ],
       "tileSize": 256,
-      "attribution": "© OpenStreetMap contributors, © CARTO"
+      "attribution": "Tiles © Esri — Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom"
     }
   },
   "layers": [
     {
-      "id": "carto-raster-layer",
+      "id": "esri-world-street-layer",
       "type": "raster",
-      "source": "carto-raster-tiles",
+      "source": "esri-world-street-tiles",
       "minzoom": 0,
-      "maxzoom": 20
+      "maxzoom": 19
     }
   ]
 }
 """
 
 /**
- * 100% Free, OpenSource MapLibre + CARTO Voyager OpenStreetMap Basemap View.
+ * 100% Free, OpenSource MapLibre + Esri World Street Open Basemap View.
+ * Requires NO API key or token.
  * Supports rendering custom civic map markers, clustering, click handlers, and camera positioning.
  */
 @Composable
@@ -114,7 +112,7 @@ fun MapLibreMapView(
         factory = { mapView },
         update = { view ->
             view.getMapAsync { map ->
-                map.setStyle(Style.Builder().fromJson(CARTO_VOYAGER_STYLE_JSON)) { _ ->
+                map.setStyle(Style.Builder().fromJson(ESRI_WORLD_STREET_STYLE_JSON)) { _ ->
                     map.animateCamera(
                         CameraUpdateFactory.newCameraPosition(
                             CameraPosition.Builder()
