@@ -107,6 +107,7 @@ fun ReportWasteScreen(
     val formState by viewModel.formState.collectAsState()
     val submissionState by viewModel.submissionState.collectAsState()
     val duplicateMatches by viewModel.duplicateMatchesState.collectAsState()
+    val aiAnalysis by viewModel.aiAnalysisState.collectAsState()
 
     var showLeaveConfirmDialog by remember { mutableStateOf(false) }
     var showAuthDialog by remember { mutableStateOf(false) }
@@ -189,6 +190,7 @@ fun ReportWasteScreen(
                     ReportFormStage.PHOTO_INPUT -> {
                         PhotoInputStageContent(
                             formState = formState,
+                            aiAnalysis = aiAnalysis,
                             viewModel = viewModel
                         )
                     }
@@ -204,6 +206,7 @@ fun ReportWasteScreen(
                         ReviewStageContent(
                             formState = formState,
                             duplicateMatches = duplicateMatches,
+                            aiAnalysis = aiAnalysis,
                             viewModel = viewModel
                         )
                     }
@@ -581,6 +584,7 @@ private fun FormStepperHeader(currentStage: ReportFormStage) {
 @Composable
 private fun PhotoInputStageContent(
     formState: ReportFormState,
+    aiAnalysis: com.example.saafloop.core.model.ReportAIAnalysis?,
     viewModel: ReportWasteViewModel
 ) {
     val cameraLauncher = rememberLauncherForActivityResult(
@@ -602,6 +606,13 @@ private fun PhotoInputStageContent(
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        if (aiAnalysis != null) {
+            com.example.saafloop.feature.report.components.AIReportAnalysisCard(
+                analysis = aiAnalysis,
+                onApplySuggestedCategory = { cat -> viewModel.applyAISuggestedCategory(cat) },
+                onApplySuggestedDescription = { desc -> viewModel.applyAISuggestedDescription(desc) }
+            )
+        }
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -1000,9 +1011,17 @@ private fun DetailsAndLocationStageContent(
 private fun ReviewStageContent(
     formState: ReportFormState,
     duplicateMatches: List<DuplicateMatchItem>,
+    aiAnalysis: com.example.saafloop.core.model.ReportAIAnalysis?,
     viewModel: ReportWasteViewModel
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        if (aiAnalysis != null) {
+            com.example.saafloop.feature.report.components.AIReportAnalysisCard(
+                analysis = aiAnalysis,
+                onApplySuggestedCategory = { cat -> viewModel.applyAISuggestedCategory(cat) },
+                onApplySuggestedDescription = { desc -> viewModel.applyAISuggestedDescription(desc) }
+            )
+        }
         // Summary Card
         Card(
             modifier = Modifier.fillMaxWidth(),

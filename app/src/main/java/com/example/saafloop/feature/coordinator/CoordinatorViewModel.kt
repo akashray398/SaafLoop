@@ -5,12 +5,18 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.saafloop.core.data.AuthRepository
 import com.example.saafloop.core.data.AuthRepositoryImpl
+import com.example.saafloop.core.data.CivicAIRepository
+import com.example.saafloop.core.data.CivicAIRepositoryImpl
 import com.example.saafloop.core.data.CoordinatorRepository
 import com.example.saafloop.core.data.CoordinatorRepositoryImpl
+import com.example.saafloop.core.domain.GetCivicIntelligenceUseCase
+import com.example.saafloop.core.domain.SuggestReportSeverityUseCase
 import com.example.saafloop.core.model.AuditEvent
 import com.example.saafloop.core.model.CaseReport
+import com.example.saafloop.core.model.CivicIntelligenceData
 import com.example.saafloop.core.model.CoordinatorMetrics
 import com.example.saafloop.core.model.ReviewFilter
+import com.example.saafloop.core.util.PriorityResult
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -18,6 +24,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -25,6 +32,10 @@ class CoordinatorViewModel(application: Application) : AndroidViewModel(applicat
 
     private val repository: CoordinatorRepository = CoordinatorRepositoryImpl(application)
     private val authRepository: AuthRepository = AuthRepositoryImpl(application)
+    private val aiRepository: CivicAIRepository = CivicAIRepositoryImpl(application)
+
+    private val getCivicIntelligenceUseCase = GetCivicIntelligenceUseCase(aiRepository)
+    private val suggestReportSeverityUseCase = SuggestReportSeverityUseCase(aiRepository)
 
     private val _filterState = MutableStateFlow(ReviewFilter())
     val filterState: StateFlow<ReviewFilter> = _filterState.asStateFlow()
@@ -36,6 +47,13 @@ class CoordinatorViewModel(application: Application) : AndroidViewModel(applicat
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = CoordinatorMetrics()
+        )
+
+    val civicIntelligenceState: StateFlow<CivicIntelligenceData> = getCivicIntelligenceUseCase()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = CivicIntelligenceData()
         )
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -69,6 +87,18 @@ class CoordinatorViewModel(application: Application) : AndroidViewModel(applicat
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = emptyList()
+        )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val activeReportPriorityResultState: StateFlow<PriorityResult?> = activeReportDetailState
+        .map { report ->
+            if (report == null) null
+            else suggestReportSeverityUseCase(report, null, 0)
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = null
         )
 
     fun selectCaseForReview(caseId: String) {

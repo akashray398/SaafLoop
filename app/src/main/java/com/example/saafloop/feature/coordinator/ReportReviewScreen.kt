@@ -86,6 +86,7 @@ fun ReportReviewScreen(
 ) {
     val reportDetail by coordinatorViewModel.activeReportDetailState.collectAsState()
     val auditHistory by coordinatorViewModel.activeReportAuditHistoryState.collectAsState()
+    val priorityResult by coordinatorViewModel.activeReportPriorityResultState.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
     val coroutineScope = rememberCoroutineScope()
@@ -256,6 +257,13 @@ fun ReportReviewScreen(
                             }
                         }
                     }
+
+                    // 2.5 AI Triage & Priority Insights Card
+                    com.example.saafloop.feature.coordinator.components.AICoordinatorInsightsCard(
+                        priorityResult = priorityResult,
+                        duplicateMatches = emptyList(),
+                        onOverridePriority = { /* override */ }
+                    )
 
                     // 3. Issue Classification & Priority Calculator
                     Card(

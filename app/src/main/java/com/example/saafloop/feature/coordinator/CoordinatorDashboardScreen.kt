@@ -83,6 +83,7 @@ fun CoordinatorDashboardScreen(
     val metrics by coordinatorViewModel.metricsState.collectAsState()
     val filterState by coordinatorViewModel.filterState.collectAsState()
     val reviewQueue by coordinatorViewModel.reviewQueueState.collectAsState()
+    val civicIntelligence by coordinatorViewModel.civicIntelligenceState.collectAsState()
 
     Scaffold(
         topBar = {
@@ -177,6 +178,11 @@ fun CoordinatorDashboardScreen(
 
             // 2. Summary KPI Metrics Cards
             MetricsSummarySection(metrics = metrics)
+
+            // 3. AI Civic Intelligence & Operational Trends Panel
+            com.example.saafloop.feature.coordinator.components.AICivicIntelligenceDashboard(
+                intelligenceData = civicIntelligence
+            )
 
             // 3. Search Bar & Status Filter Chips
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

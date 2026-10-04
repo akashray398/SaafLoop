@@ -12,13 +12,17 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.saafloop.core.data.AuthRepository
 import com.example.saafloop.core.data.AuthRepositoryImpl
+import com.example.saafloop.core.data.CivicAIRepository
+import com.example.saafloop.core.data.CivicAIRepositoryImpl
 import com.example.saafloop.core.data.DraftRepository
 import com.example.saafloop.core.data.DraftRepositoryImpl
 import com.example.saafloop.core.data.DuplicateDetectionEngine
 import com.example.saafloop.core.data.RemoteCaseRepository
 import com.example.saafloop.core.data.RemoteCaseRepositoryImpl
+import com.example.saafloop.core.domain.AnalyzeCivicReportUseCase
 import com.example.saafloop.core.model.CaseReport
 import com.example.saafloop.core.model.DuplicateMatchItem
+import com.example.saafloop.core.model.ReportAIAnalysis
 import com.example.saafloop.core.worker.ReportUploadWorker
 import com.example.saafloop.feature.report.model.ReportFormStage
 import com.example.saafloop.feature.report.model.ReportFormState
@@ -39,12 +43,17 @@ class ReportWasteViewModel(application: Application) : AndroidViewModel(applicat
     private val draftRepository: DraftRepository = DraftRepositoryImpl(application)
     private val authRepository: AuthRepository = AuthRepositoryImpl(application)
     private val remoteCaseRepository: RemoteCaseRepository = RemoteCaseRepositoryImpl(application)
+    private val aiRepository: CivicAIRepository = CivicAIRepositoryImpl(application)
+    private val analyzeReportUseCase = AnalyzeCivicReportUseCase(aiRepository)
 
     private val _formState = MutableStateFlow(ReportFormState())
     val formState: StateFlow<ReportFormState> = _formState.asStateFlow()
 
     private val _submissionState = MutableStateFlow<SubmissionState>(SubmissionState.Draft)
     val submissionState: StateFlow<SubmissionState> = _submissionState.asStateFlow()
+
+    private val _aiAnalysisState = MutableStateFlow<ReportAIAnalysis?>(null)
+    val aiAnalysisState: StateFlow<ReportAIAnalysis?> = _aiAnalysisState.asStateFlow()
 
     val publicCasesState: StateFlow<List<CaseReport>> = remoteCaseRepository
         .observePublicCases()
@@ -76,6 +85,42 @@ class ReportWasteViewModel(application: Application) : AndroidViewModel(applicat
 
     private var activeDraftId: String? = null
     private var tempCameraPhotoUri: Uri? = null
+
+    /** Triggers AI report analysis on the current photo & context. */
+    fun triggerAIAnalysis() {
+        val current = _formState.value
+        viewModelScope.launch {
+            val result = analyzeReportUseCase(
+                photoUri = current.photoUri,
+                photoPath = current.photoUri?.path,
+                userCategory = current.category?.name,
+                userDescription = current.description,
+                locationName = current.locationName,
+                latitude = current.latitude,
+                longitude = current.longitude
+            )
+            result.onSuccess { analysis ->
+                _aiAnalysisState.value = analysis
+                if (current.category == null && !analysis.suggestedCategory.isNullOrBlank()) {
+                    val matched = try { WasteCategory.valueOf(analysis.suggestedCategory) } catch (_: Exception) { null }
+                    if (matched != null) {
+                        setCategory(matched)
+                    }
+                }
+            }
+        }
+    }
+
+    fun applyAISuggestedCategory(catName: String) {
+        val matched = try { WasteCategory.valueOf(catName) } catch (_: Exception) { null }
+        if (matched != null) {
+            setCategory(matched)
+        }
+    }
+
+    fun applyAISuggestedDescription(desc: String) {
+        setDescription(desc)
+    }
 
     /** Loads an existing draft from Room if editing a saved draft. */
     fun loadDraft(draftId: String) {
@@ -111,6 +156,8 @@ class ReportWasteViewModel(application: Application) : AndroidViewModel(applicat
                     locationName = if (draft.locationName.isNotBlank()) draft.locationName else "Central District",
                     isHazardousSuspected = draft.isHazardousSuspected
                 )
+
+                triggerAIAnalysis()
             }
         }
     }
@@ -253,10 +300,12 @@ class ReportWasteViewModel(application: Application) : AndroidViewModel(applicat
             photoUri = uri,
             validationTriggered = false
         )
+        triggerAIAnalysis()
     }
 
     fun removePhoto() {
         _formState.value = _formState.value.copy(photoUri = null)
+        _aiAnalysisState.value = null
     }
 
     fun setCategory(category: WasteCategory) {
@@ -295,6 +344,7 @@ class ReportWasteViewModel(application: Application) : AndroidViewModel(applicat
 
     fun goToStage(stage: ReportFormStage) {
         _formState.value = _formState.value.copy(currentStage = stage)
+        triggerAIAnalysis()
     }
 
     fun nextStage(): Boolean {
@@ -309,6 +359,7 @@ class ReportWasteViewModel(application: Application) : AndroidViewModel(applicat
                     currentStage = ReportFormStage.DETAILS_AND_LOCATION,
                     validationTriggered = false
                 )
+                triggerAIAnalysis()
                 return true
             }
 
@@ -321,6 +372,7 @@ class ReportWasteViewModel(application: Application) : AndroidViewModel(applicat
                     currentStage = ReportFormStage.REVIEW,
                     validationTriggered = false
                 )
+                triggerAIAnalysis()
                 return true
             }
 
