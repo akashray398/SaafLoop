@@ -1,9 +1,12 @@
 package com.example.saafloop.feature.home
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -52,12 +55,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.saafloop.core.designsystem.SaafLoopLogo
 import kotlinx.coroutines.delay
 
@@ -65,33 +70,52 @@ private data class HomeSlideItem(
     val imageUrl: String,
     val title: String,
     val slogan: String,
-    val tag: String
+    val tag: String,
+    val fallbackGradient: List<Color>
 )
 
 private val HOME_SLIDES = listOf(
     HomeSlideItem(
-        imageUrl = "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=1000&q=80",
+        imageUrl = "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=800&q=75",
         title = "SaafLoop Volunteers",
         slogan = "Join Hands for a Waste-Free City — Spot It, Solve It!",
-        tag = "Volunteers in Action"
+        tag = "Volunteers in Action",
+        fallbackGradient = listOf(Color(0xFF2E7D32), Color(0xFF1B5E20))
     ),
     HomeSlideItem(
-        imageUrl = "https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=1000&q=80",
+        imageUrl = "https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=800&q=75",
         title = "Community Cleanups",
         slogan = "Together We Keep Our Streets and Parks Clean!",
-        tag = "Community Action"
+        tag = "Community Action",
+        fallbackGradient = listOf(Color(0xFF0288D1), Color(0xFF01579B))
     ),
     HomeSlideItem(
-        imageUrl = "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1000&q=80",
+        imageUrl = "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=800&q=75",
         title = "Save Environment",
         slogan = "Clean Today, Green Tomorrow — Every Action Counts!",
-        tag = "Environmental Slogan"
+        tag = "Environmental Slogan",
+        fallbackGradient = listOf(Color(0xFF00796B), Color(0xFF004D40))
     ),
     HomeSlideItem(
-        imageUrl = "https://images.unsplash.com/photo-1511497584788-876761c11969?auto=format&fit=crop&w=1000&q=80",
+        imageUrl = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=75",
         title = "Restored Green Spaces",
         slogan = "Verifying Clean Sites to Prevent Repeat Dumping.",
-        tag = "Verified Impact"
+        tag = "Verified Impact",
+        fallbackGradient = listOf(Color(0xFF512DA8), Color(0xFF311B92))
+    ),
+    HomeSlideItem(
+        imageUrl = "https://images.unsplash.com/photo-1518531933037-91b2f5f229cc?auto=format&fit=crop&w=800&q=75",
+        title = "Clean City, Healthy Life",
+        slogan = "Keep Your Neighborhood Clean, Green & Serene — Be a Civic Champion!",
+        tag = "Civic Slogan",
+        fallbackGradient = listOf(Color(0xFF1565C0), Color(0xFF0D47A1))
+    ),
+    HomeSlideItem(
+        imageUrl = "https://images.unsplash.com/photo-1595278069441-2cf29f8005a4?auto=format&fit=crop&w=800&q=75",
+        title = "Group Cleanup Drive",
+        slogan = "Empowering Youth & Communities for Sustainable Sanitation!",
+        tag = "Group Drive",
+        fallbackGradient = listOf(Color(0xFFE65100), Color(0xFFBF360C))
     )
 )
 
@@ -157,7 +181,7 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(12.dp))
-            
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -282,7 +306,7 @@ fun HomeScreen(
                 onClick = onNavigateToActivity
             )
         }
-        
+
         Spacer(modifier = Modifier.height(16.dp))
     }
 }
@@ -292,13 +316,18 @@ private fun HomeAutoSlidingHeroCarousel(
     slides: List<HomeSlideItem>,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     val pagerState = rememberPagerState(pageCount = { slides.size })
 
-    // Automatic sliding timer every 5 seconds
-    LaunchedEffect(pagerState.currentPage) {
-        delay(5000L)
-        val nextPage = (pagerState.currentPage + 1) % slides.size
-        pagerState.animateScrollToPage(nextPage)
+    // Stable continuous auto-scroll timer loop
+    LaunchedEffect(slides) {
+        while (true) {
+            delay(3000L)
+            if (!pagerState.isScrollInProgress) {
+                val nextPage = (pagerState.currentPage + 1) % slides.size
+                pagerState.animateScrollToPage(nextPage)
+            }
+        }
     }
 
     Card(
@@ -314,9 +343,16 @@ private fun HomeAutoSlidingHeroCarousel(
                 modifier = Modifier.fillMaxSize()
             ) { page ->
                 val slide = slides[page]
-                Box(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Brush.linearGradient(slide.fallbackGradient))
+                ) {
                     AsyncImage(
-                        model = slide.imageUrl,
+                        model = ImageRequest.Builder(context)
+                            .data(slide.imageUrl)
+                            .crossfade(true)
+                            .build(),
                         contentDescription = slide.slogan,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
@@ -336,7 +372,7 @@ private fun HomeAutoSlidingHeroCarousel(
                             )
                     )
 
-                    // Slide Content Overlay
+                    // Slide Content Overlay with Fade/Slide Animation
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -375,24 +411,32 @@ private fun HomeAutoSlidingHeroCarousel(
                             }
                         }
 
-                        // Bottom Title & Slogan
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            Text(
-                                text = slide.title,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                color = Color.White
-                            )
-                            Text(
-                                text = slide.slogan,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Medium,
-                                color = Color.White.copy(alpha = 0.9f),
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                        // Bottom Title & Slogan with Entrance Animation
+                        AnimatedContent(
+                            targetState = slide,
+                            transitionSpec = {
+                                (fadeIn() + slideInVertically { it / 2 }).togetherWith(fadeOut())
+                            },
+                            label = "SlideTextAnimation"
+                        ) { targetSlide ->
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Text(
+                                    text = targetSlide.title,
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                                Text(
+                                    text = targetSlide.slogan,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color.White.copy(alpha = 0.92f),
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                     }
                 }
@@ -416,7 +460,7 @@ private fun HomeAutoSlidingHeroCarousel(
                                 if (isSelected)
                                     MaterialTheme.colorScheme.primary
                                 else
-                                    Color.White.copy(alpha = 0.5f)
+                                    Color.White.copy(alpha = 0.6f)
                             )
                     )
                 }
