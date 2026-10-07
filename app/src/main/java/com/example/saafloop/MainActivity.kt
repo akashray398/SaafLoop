@@ -1,5 +1,6 @@
 package com.example.saafloop
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.NotificationsNone
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -38,6 +39,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.saafloop.core.data.UserAccessState
 import com.example.saafloop.core.navigation.Screen
 import com.example.saafloop.core.navigation.bottomNavItems
+import com.example.saafloop.core.util.NotificationChannelManager
 import com.example.saafloop.feature.activity.ActivityScreen
 import com.example.saafloop.feature.auth.AccessChoiceScreen
 import com.example.saafloop.feature.community.ActivityDetailScreen
@@ -49,6 +51,8 @@ import com.example.saafloop.feature.explore.ExploreScreen
 import com.example.saafloop.feature.fieldops.FieldDashboardScreen
 import com.example.saafloop.feature.fieldops.FieldTaskDetailScreen
 import com.example.saafloop.feature.home.HomeScreen
+import com.example.saafloop.feature.notification.NotificationCenterScreen
+import com.example.saafloop.feature.notification.NotificationPreferencesScreen
 import com.example.saafloop.feature.onboarding.OnboardingScreen
 import com.example.saafloop.feature.profile.ProfileScreen
 import com.example.saafloop.feature.report.ReportWasteScreen
@@ -69,6 +73,9 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        // Initialize Android System Notification Channels
+        NotificationChannelManager.createNotificationChannels(applicationContext)
 
         setContent {
             SaafLoopTheme {
@@ -120,10 +127,10 @@ private fun SaafLoopAppContent(
                         )
                     },
                     actions = {
-                        IconButton(onClick = { /* Notifications workflow */ }) {
+                        IconButton(onClick = { navController.navigate(Screen.NotificationCenter.route) }) {
                             Icon(
-                                imageVector = Icons.Default.NotificationsNone,
-                                contentDescription = "Notifications",
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = "Notification Center",
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -431,7 +438,57 @@ private fun SaafLoopAppContent(
                         initialLocationName = locationName
                     )
                 }
+
+                // Notification Center Route
+                composable(Screen.NotificationCenter.route) {
+                    NotificationCenterScreen(
+                        onBackClick = {
+                            navController.popBackStack()
+                        },
+                        onOpenPreferences = {
+                            navController.navigate(Screen.NotificationPreferences.route)
+                        },
+                        onNavigateToDeepLink = { deepLink ->
+                            handleDeepLink(navController, deepLink)
+                        }
+                    )
+                }
+
+                // Notification Preferences Route
+                composable(Screen.NotificationPreferences.route) {
+                    NotificationPreferencesScreen(
+                        onBackClick = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
             }
+        }
+    }
+}
+
+private fun handleDeepLink(navController: androidx.navigation.NavController, deepLink: String) {
+    if (deepLink.isBlank()) return
+    val uri = Uri.parse(deepLink)
+    val path = uri.path ?: uri.schemeSpecificPart
+    when {
+        path.contains("report_review/") -> {
+            val caseId = path.substringAfter("report_review/")
+            navController.navigate(Screen.ReportReview.createRoute(caseId))
+        }
+        path.contains("field_task_detail/") -> {
+            val taskId = path.substringAfter("field_task_detail/")
+            navController.navigate(Screen.FieldTaskDetail.createRoute(taskId))
+        }
+        path.contains("activity_detail/") -> {
+            val activityId = path.substringAfter("activity_detail/")
+            navController.navigate(Screen.ActivityDetail.createRoute(activityId))
+        }
+        path.contains("coordinator_dashboard") -> {
+            navController.navigate(Screen.CoordinatorDashboard.route)
+        }
+        else -> {
+            navController.navigate(Screen.NotificationCenter.route)
         }
     }
 }

@@ -5,6 +5,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -27,7 +30,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CleanHands
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PinDrop
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Button
@@ -46,12 +48,52 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.saafloop.core.designsystem.SaafLoopLogo
+import kotlinx.coroutines.delay
+
+private data class HomeSlideItem(
+    val imageUrl: String,
+    val title: String,
+    val slogan: String,
+    val tag: String
+)
+
+private val HOME_SLIDES = listOf(
+    HomeSlideItem(
+        imageUrl = "https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&w=1000&q=80",
+        title = "SaafLoop Volunteers",
+        slogan = "Join Hands for a Waste-Free City — Spot It, Solve It!",
+        tag = "Volunteers in Action"
+    ),
+    HomeSlideItem(
+        imageUrl = "https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&w=1000&q=80",
+        title = "Community Cleanups",
+        slogan = "Together We Keep Our Streets and Parks Clean!",
+        tag = "Community Action"
+    ),
+    HomeSlideItem(
+        imageUrl = "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1000&q=80",
+        title = "Save Environment",
+        slogan = "Clean Today, Green Tomorrow — Every Action Counts!",
+        tag = "Environmental Slogan"
+    ),
+    HomeSlideItem(
+        imageUrl = "https://images.unsplash.com/photo-1511497584788-876761c11969?auto=format&fit=crop&w=1000&q=80",
+        title = "Restored Green Spaces",
+        slogan = "Verifying Clean Sites to Prevent Repeat Dumping.",
+        tag = "Verified Impact"
+    )
+)
 
 @Composable
 fun HomeScreen(
@@ -72,40 +114,10 @@ fun HomeScreen(
             .fillMaxSize()
             .verticalScroll(scrollState)
             .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // 1. Welcoming Hero Section
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            ),
-            shape = RoundedCornerShape(24.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                SaafLoopLogo(modifier = Modifier.size(80.dp))
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "SaafLoop",
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Spot it. Solve it. Keep it clean.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
-                )
-            }
-        }
+        // 1. Auto-Sliding HD Image Carousel Hero Section
+        HomeAutoSlidingHeroCarousel(slides = HOME_SLIDES)
 
         // 2. Prominent "Report waste" action with restrained entrance animation
         AnimatedVisibility(
@@ -272,6 +284,144 @@ fun HomeScreen(
         }
         
         Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+private fun HomeAutoSlidingHeroCarousel(
+    slides: List<HomeSlideItem>,
+    modifier: Modifier = Modifier
+) {
+    val pagerState = rememberPagerState(pageCount = { slides.size })
+
+    // Automatic sliding timer every 5 seconds
+    LaunchedEffect(pagerState.currentPage) {
+        delay(5000L)
+        val nextPage = (pagerState.currentPage + 1) % slides.size
+        pagerState.animateScrollToPage(nextPage)
+    }
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(230.dp),
+        shape = RoundedCornerShape(24.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
+                val slide = slides[page]
+                Box(modifier = Modifier.fillMaxSize()) {
+                    AsyncImage(
+                        model = slide.imageUrl,
+                        contentDescription = slide.slogan,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+
+                    // Gradient Scrim for readable high-contrast text overlay
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color.Black.copy(alpha = 0.35f),
+                                        Color.Black.copy(alpha = 0.85f)
+                                    )
+                                )
+                            )
+                    )
+
+                    // Slide Content Overlay
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(18.dp),
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        // Top Badge with SaafLoop Logo + Tag
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                SaafLoopLogo(modifier = Modifier.size(32.dp))
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "SaafLoop",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            }
+
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(MaterialTheme.colorScheme.primary)
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = slide.tag,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            }
+                        }
+
+                        // Bottom Title & Slogan
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = slide.title,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.White
+                            )
+                            Text(
+                                text = slide.slogan,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium,
+                                color = Color.White.copy(alpha = 0.9f),
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Slide Page Indicator Dots
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(slides.size) { index ->
+                    val isSelected = pagerState.currentPage == index
+                    Box(
+                        modifier = Modifier
+                            .size(if (isSelected) 10.dp else 6.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (isSelected)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    Color.White.copy(alpha = 0.5f)
+                            )
+                    )
+                }
+            }
+        }
     }
 }
 

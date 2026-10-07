@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.SupervisorAccount
@@ -39,6 +40,8 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     data object OrganizationDetail : Screen("organization_detail/{orgId}", "Organization", Icons.Default.CorporateFare) {
         fun createRoute(orgId: String) = "organization_detail/$orgId"
     }
+    data object NotificationCenter : Screen("notification_center", "Notification Center", Icons.Default.Notifications)
+    data object NotificationPreferences : Screen("notification_preferences", "Notification Settings", Icons.Default.Notifications)
 }
 
 val bottomNavItems = listOf(
