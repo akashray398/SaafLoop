@@ -41,6 +41,8 @@ import com.example.saafloop.core.navigation.Screen
 import com.example.saafloop.core.navigation.bottomNavItems
 import com.example.saafloop.core.util.NotificationChannelManager
 import com.example.saafloop.feature.activity.ActivityScreen
+import com.example.saafloop.feature.analytics.OperationalAnalyticsScreen
+import com.example.saafloop.feature.analytics.PersonalImpactScreen
 import com.example.saafloop.feature.auth.AccessChoiceScreen
 import com.example.saafloop.feature.community.ActivityDetailScreen
 import com.example.saafloop.feature.community.CommunityHomeScreen
@@ -241,6 +243,9 @@ private fun SaafLoopAppContent(
                                 launchSingleTop = true
                                 restoreState = true
                             }
+                        },
+                        onNavigateToPersonalImpact = {
+                            navController.navigate(Screen.PersonalImpact.route)
                         }
                     )
                 }
@@ -346,6 +351,9 @@ private fun SaafLoopAppContent(
                         },
                         onReviewReport = { caseId ->
                             navController.navigate(Screen.ReportReview.createRoute(caseId))
+                        },
+                        onOpenOperationalAnalytics = {
+                            navController.navigate(Screen.OperationalAnalytics.route)
                         }
                     )
                 }
@@ -457,6 +465,24 @@ private fun SaafLoopAppContent(
                 // Notification Preferences Route
                 composable(Screen.NotificationPreferences.route) {
                     NotificationPreferencesScreen(
+                        onBackClick = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+
+                // Personal Impact Dashboard Route
+                composable(Screen.PersonalImpact.route) {
+                    PersonalImpactScreen(
+                        onBackClick = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+
+                // Operational Analytics Dashboard Route
+                composable(Screen.OperationalAnalytics.route) {
+                    OperationalAnalyticsScreen(
                         onBackClick = {
                             navController.popBackStack()
                         }

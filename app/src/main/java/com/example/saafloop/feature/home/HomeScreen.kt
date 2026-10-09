@@ -44,6 +44,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -124,10 +125,13 @@ fun HomeScreen(
     onReportWasteClick: () -> Unit,
     onNavigateToExplore: () -> Unit,
     onNavigateToActivity: () -> Unit,
-    modifier: Modifier = Modifier
+    onNavigateToPersonalImpact: () -> Unit = {},
+    modifier: Modifier = Modifier,
+    impactViewModel: com.example.saafloop.feature.analytics.PersonalImpactViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
 ) {
     val scrollState = rememberScrollState()
     var isActionVisible by remember { mutableStateOf(false) }
+    val personalMetrics by impactViewModel.personalMetricsState.collectAsState()
 
     LaunchedEffect(Unit) {
         isActionVisible = true
@@ -210,46 +214,11 @@ fun HomeScreen(
             }
         }
 
-        // 4. Community Impact Area (Honest Empty State)
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            ),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.BarChart,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Community Impact",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "No cleanups recorded yet in your area. Be the first to spot a location and start a movement!",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                )
-            }
-        }
+        // 4. Community & Personal Impact Summary Card
+        com.example.saafloop.feature.analytics.components.HomeImpactCard(
+            impactMetrics = personalMetrics,
+            onViewImpactClick = onNavigateToPersonalImpact
+        )
 
         // 5. Why Verified Cleanup Matters Section
         Card(

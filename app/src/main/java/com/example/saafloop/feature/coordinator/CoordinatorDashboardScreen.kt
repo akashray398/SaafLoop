@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.AssignmentTurnedIn
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.FilterList
@@ -77,6 +78,7 @@ import java.util.Locale
 fun CoordinatorDashboardScreen(
     onBackClick: () -> Unit,
     onReviewReport: (String) -> Unit,
+    onOpenOperationalAnalytics: () -> Unit = {},
     modifier: Modifier = Modifier,
     coordinatorViewModel: CoordinatorViewModel = viewModel()
 ) {
@@ -111,6 +113,14 @@ fun CoordinatorDashboardScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onOpenOperationalAnalytics) {
+                        Icon(
+                            imageVector = Icons.Default.Analytics,
+                            contentDescription = "Operational Analytics & Trends"
                         )
                     }
                 },

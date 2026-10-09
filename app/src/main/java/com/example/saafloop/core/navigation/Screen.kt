@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CorporateFare
 import androidx.compose.material.icons.filled.Groups
@@ -13,7 +14,7 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SupervisorAccount
+import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
@@ -25,7 +26,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     data object Activity : Screen("activity", "Activity", Icons.AutoMirrored.Filled.List)
     data object Profile : Screen("profile", "Profile", Icons.Default.AccountCircle)
     data object ReportWaste : Screen("report_waste", "Report Waste", Icons.Default.Home)
-    data object CoordinatorDashboard : Screen("coordinator_dashboard", "Coordinator Dashboard", Icons.Default.SupervisorAccount)
+    data object CoordinatorDashboard : Screen("coordinator_dashboard", "Coordinator Dashboard", Icons.Default.Analytics)
     data object ReportReview : Screen("report_review/{caseId}", "Review Report", Icons.Default.RateReview) {
         fun createRoute(caseId: String) = "report_review/$caseId"
     }
@@ -42,6 +43,8 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     }
     data object NotificationCenter : Screen("notification_center", "Notification Center", Icons.Default.Notifications)
     data object NotificationPreferences : Screen("notification_preferences", "Notification Settings", Icons.Default.Notifications)
+    data object PersonalImpact : Screen("personal_impact", "Personal Impact", Icons.Default.Analytics)
+    data object OperationalAnalytics : Screen("operational_analytics", "Operational Analytics", Icons.Default.Analytics)
 }
 
 val bottomNavItems = listOf(
