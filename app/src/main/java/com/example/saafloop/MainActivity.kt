@@ -41,6 +41,7 @@ import com.example.saafloop.core.navigation.Screen
 import com.example.saafloop.core.navigation.bottomNavItems
 import com.example.saafloop.core.util.NotificationChannelManager
 import com.example.saafloop.feature.activity.ActivityScreen
+import com.example.saafloop.feature.admin.AdminGovernanceDashboardScreen
 import com.example.saafloop.feature.analytics.OperationalAnalyticsScreen
 import com.example.saafloop.feature.analytics.PersonalImpactScreen
 import com.example.saafloop.feature.auth.AccessChoiceScreen
@@ -372,6 +373,18 @@ private fun SaafLoopAppContent(
                         },
                         onOpenOperationalAnalytics = {
                             navController.navigate(Screen.OperationalAnalytics.route)
+                        },
+                        onOpenAdminGovernance = {
+                            navController.navigate(Screen.AdminGovernanceDashboard.route)
+                        }
+                    )
+                }
+
+                // Admin Governance & Moderation Dashboard Route
+                composable(Screen.AdminGovernanceDashboard.route) {
+                    AdminGovernanceDashboardScreen(
+                        onBackClick = {
+                            navController.popBackStack()
                         }
                     )
                 }

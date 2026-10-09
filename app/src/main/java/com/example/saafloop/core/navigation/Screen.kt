@@ -7,6 +7,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CorporateFare
+import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
@@ -45,6 +46,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     data object PersonalImpact : Screen("personal_impact", "Personal Impact", Icons.Default.Analytics)
     data object OperationalAnalytics : Screen("operational_analytics", "Operational Analytics", Icons.Default.Analytics)
     data object SecurityPrivacySettings : Screen("security_privacy_settings", "Security & Privacy", Icons.Default.Lock)
+    data object AdminGovernanceDashboard : Screen("admin_governance_dashboard", "Admin Governance", Icons.Default.Gavel)
 }
 
 val bottomNavItems = listOf(

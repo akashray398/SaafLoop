@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.AssignmentTurnedIn
+import androidx.compose.material.icons.filled.Gavel
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.HelpOutline
@@ -79,6 +80,7 @@ fun CoordinatorDashboardScreen(
     onBackClick: () -> Unit,
     onReviewReport: (String) -> Unit,
     onOpenOperationalAnalytics: () -> Unit = {},
+    onOpenAdminGovernance: () -> Unit = {},
     modifier: Modifier = Modifier,
     coordinatorViewModel: CoordinatorViewModel = viewModel()
 ) {
@@ -117,6 +119,12 @@ fun CoordinatorDashboardScreen(
                     }
                 },
                 actions = {
+                    IconButton(onClick = onOpenAdminGovernance) {
+                        Icon(
+                            imageVector = Icons.Default.Gavel,
+                            contentDescription = "Admin Governance & Moderation"
+                        )
+                    }
                     IconButton(onClick = onOpenOperationalAnalytics) {
                         Icon(
                             imageVector = Icons.Default.Analytics,
