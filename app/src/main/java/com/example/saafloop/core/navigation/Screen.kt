@@ -14,7 +14,6 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Icon
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(val route: String, val title: String, val icon: ImageVector) {
@@ -45,6 +44,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     data object NotificationPreferences : Screen("notification_preferences", "Notification Settings", Icons.Default.Notifications)
     data object PersonalImpact : Screen("personal_impact", "Personal Impact", Icons.Default.Analytics)
     data object OperationalAnalytics : Screen("operational_analytics", "Operational Analytics", Icons.Default.Analytics)
+    data object SecurityPrivacySettings : Screen("security_privacy_settings", "Security & Privacy", Icons.Default.Lock)
 }
 
 val bottomNavItems = listOf(

@@ -57,6 +57,7 @@ import com.example.saafloop.feature.notification.NotificationCenterScreen
 import com.example.saafloop.feature.notification.NotificationPreferencesScreen
 import com.example.saafloop.feature.onboarding.OnboardingScreen
 import com.example.saafloop.feature.profile.ProfileScreen
+import com.example.saafloop.feature.profile.SecurityPrivacySettingsScreen
 import com.example.saafloop.feature.report.ReportWasteScreen
 import com.example.saafloop.ui.MainUiState
 import com.example.saafloop.ui.MainViewModel
@@ -339,6 +340,23 @@ private fun SaafLoopAppContent(
                         },
                         onOpenFieldDashboard = {
                             navController.navigate(Screen.FieldDashboard.route)
+                        },
+                        onOpenSecurityPrivacySettings = {
+                            navController.navigate(Screen.SecurityPrivacySettings.route)
+                        }
+                    )
+                }
+
+                // Security & Privacy Settings Route
+                composable(Screen.SecurityPrivacySettings.route) {
+                    SecurityPrivacySettingsScreen(
+                        onBackClick = {
+                            navController.popBackStack()
+                        },
+                        onAccountDeleted = {
+                            navController.navigate(Screen.AccessChoice.route) {
+                                popUpTo(Screen.Home.route) { inclusive = true }
+                            }
                         }
                     )
                 }

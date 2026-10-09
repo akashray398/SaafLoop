@@ -20,9 +20,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.DirectionsRun
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SupervisorAccount
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.AlertDialog
@@ -54,6 +54,7 @@ fun ProfileScreen(
     onExitGuestMode: () -> Unit,
     onOpenCoordinatorDashboard: () -> Unit,
     onOpenFieldDashboard: () -> Unit,
+    onOpenSecurityPrivacySettings: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -123,7 +124,64 @@ fun ProfileScreen(
             }
         }
 
-        // 2. Coordinator Review Portal Section
+        // 2. Security & Privacy Settings Portal Section
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Shield,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Security & Privacy Protection",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Text(
+                    text = "Manage your location anonymization settings, account recovery, profile visibility, and data deletion rights.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
+
+                OutlinedButton(
+                    onClick = onOpenSecurityPrivacySettings,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Shield,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Security & Privacy Settings",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        // 3. Coordinator Review Portal Section
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -183,7 +241,7 @@ fun ProfileScreen(
             }
         }
 
-        // 3. Field Worker Operations Portal Section
+        // 4. Field Worker Operations Portal Section
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -229,13 +287,13 @@ fun ProfileScreen(
                     )
                 ) {
                     Icon(
-                        imageVector = Icons.Default.DirectionsRun,
+                        imageVector = Icons.Default.Build,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = "Open Field Operations Portal",
+                        text = "Open Field Operations Dashboard",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold
                     )
@@ -243,52 +301,13 @@ fun ProfileScreen(
             }
         }
 
-        // 4. Guest Explanation Card
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            ),
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Info,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Guest Session Active",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = stringResource(R.string.profile_guest_desc),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-                )
-            }
-        }
-
-        // 5. Action Buttons (View Onboarding & Exit Guest Mode)
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
+        // 5. App Settings & Onboarding Revisit
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(
                 onClick = onNavigateToOnboarding,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
+                    .height(48.dp),
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(
@@ -297,17 +316,14 @@ fun ProfileScreen(
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.profile_view_onboarding),
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Text(text = stringResource(R.string.profile_view_onboarding))
             }
 
             OutlinedButton(
                 onClick = { showExitConfirmation = true },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(50.dp),
+                    .height(48.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = MaterialTheme.colorScheme.error
@@ -319,17 +335,11 @@ fun ProfileScreen(
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.profile_exit_guest),
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Text(text = stringResource(R.string.profile_exit_guest))
             }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
     }
 
-    // Exit Guest Mode confirmation dialog
     if (showExitConfirmation) {
         AlertDialog(
             onDismissRequest = { showExitConfirmation = false },
@@ -346,17 +356,16 @@ fun ProfileScreen(
                 )
             },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
                         showExitConfirmation = false
                         onExitGuestMode()
-                    }
-                ) {
-                    Text(
-                        text = stringResource(R.string.profile_exit_guest_confirm_btn),
-                        color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.Bold
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
                     )
+                ) {
+                    Text(text = stringResource(R.string.profile_exit_guest_confirm_btn))
                 }
             },
             dismissButton = {
