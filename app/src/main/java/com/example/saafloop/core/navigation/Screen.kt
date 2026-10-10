@@ -47,6 +47,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     data object OperationalAnalytics : Screen("operational_analytics", "Operational Analytics", Icons.Default.Analytics)
     data object SecurityPrivacySettings : Screen("security_privacy_settings", "Security & Privacy", Icons.Default.Lock)
     data object AdminGovernanceDashboard : Screen("admin_governance_dashboard", "Admin Governance", Icons.Default.Gavel)
+    data object UnifiedSearch : Screen("unified_search", "Unified Search", Icons.Default.Search)
 }
 
 val bottomNavItems = listOf(

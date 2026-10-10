@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">साफ़लूप</string>
+
+    <!-- Onboarding Strings -->
+    <string name="onboarding_skip">छोड़ें</string>
+    <string name="onboarding_next">आगे</string>
+    <string name="onboarding_back">पीछे</string>
+    <string name="onboarding_get_started">शुरू करें</string>
+    <string name="onboarding_done">हो गया</string>
+    <string name="onboarding_spot_title">कचरा चिन्हित करें</string>
+    <string name="onboarding_spot_desc">नागरिक सार्वजनिक कचरा स्थलों की पहचान करते हैं और फोटो के साथ मानचित्र पर चिन्हित करते हैं।</string>
+    <string name="onboarding_solve_title">मिलकर समाधान करें</string>
+    <string name="onboarding_solve_desc">सफाई दल और नागरिक संस्थाएं मिलकर कचरा हटाने का कार्य करती हैं।</string>
+    <string name="onboarding_keep_title">साफ़ रखें</string>
+    <string name="onboarding_keep_desc">सत्यापन द्वारा यह सुनिश्चित किया जाता है कि साफ़ किए गए स्थान फिर से गंदे न हों।</string>
+
+    <!-- Navigation & Core -->
+    <string name="access_welcome_title">साफ़लूप में आपका स्वागत है</string>
+    <string name="access_welcome_subtitle">पहचानें। समाधान करें। साफ़ रखें।</string>
+    <string name="access_continue_guest">अतिथि के रूप में जारी रखें</string>
+
+    <!-- Profile & Language -->
+    <string name="profile_title">प्रोफ़ाइल और सेटिंग्स</string>
+    <string name="profile_guest_badge">अतिथि सत्र</string>
+    <string name="profile_guest_title">अतिथि नागरिक</string>
+    <string name="language_selection_title">भाषा चुनें (Select Language)</string>
+    <string name="language_english">English</string>
+    <string name="language_hindi">हिंदी (Hindi)</string>
+    <string name="language_punjabi">ਪੰਜਾਬੀ (Punjabi)</string>
+
+    <!-- Explore & Report -->
+    <string name="explore_title">सक्रिय स्थल देखें</string>
+    <string name="explore_report_waste_btn">कचरा रिपोर्ट करें</string>
+    <string name="explore_use_my_location">मेरी लोकेशन का उपयोग करें</string>
+    <string name="report_title">सार्वजनिक कचरा रिपोर्ट करें</string>
+    <string name="report_take_photo">फोटो खींचें</string>
+    <string name="report_choose_gallery">गैलरी से चुनें</string>
+    <string name="report_category_mixed">मिश्रित कचरा</string>
+    <string name="report_category_plastic">प्लास्टिक कचरा</string>
+    <string name="report_category_overflow">ओवरफ़्लो कूड़ादान</string>
+    <string name="report_category_debris">निर्माण मलबा</string>
+    <string name="report_category_other">अन्य कचरा</string>
+
+    <!-- Accessibility Labels -->
+    <string name="cd_search_icon">नागरिक संसाधन खोजें</string>
+    <string name="cd_notifications_icon">अधिसूचना केंद्र</string>
+    <string name="cd_filter_button">रिपोर्ट फ़िल्टर खोलें</string>
+</resources>

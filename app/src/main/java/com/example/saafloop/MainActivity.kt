@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,6 +61,7 @@ import com.example.saafloop.feature.onboarding.OnboardingScreen
 import com.example.saafloop.feature.profile.ProfileScreen
 import com.example.saafloop.feature.profile.SecurityPrivacySettingsScreen
 import com.example.saafloop.feature.report.ReportWasteScreen
+import com.example.saafloop.feature.search.UnifiedSearchScreen
 import com.example.saafloop.ui.MainUiState
 import com.example.saafloop.ui.MainViewModel
 import com.example.saafloop.ui.theme.SaafLoopTheme
@@ -131,6 +133,13 @@ private fun SaafLoopAppContent(
                         )
                     },
                     actions = {
+                        IconButton(onClick = { navController.navigate(Screen.UnifiedSearch.route) }) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Search Civic Resources",
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                         IconButton(onClick = { navController.navigate(Screen.NotificationCenter.route) }) {
                             Icon(
                                 imageVector = Icons.Default.Notifications,
@@ -248,6 +257,18 @@ private fun SaafLoopAppContent(
                         },
                         onNavigateToPersonalImpact = {
                             navController.navigate(Screen.PersonalImpact.route)
+                        }
+                    )
+                }
+
+                // Unified Search Route
+                composable(Screen.UnifiedSearch.route) {
+                    UnifiedSearchScreen(
+                        onBackClick = {
+                            navController.popBackStack()
+                        },
+                        onNavigateToResult = { route ->
+                            navController.navigate(route)
                         }
                     )
                 }

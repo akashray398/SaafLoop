@@ -31,7 +31,7 @@
     <string name="access_organisation_info_desc">Official team registration and verification workflows will open in Section 6. No fake or unverified team accounts are permitted.</string>
     <string name="access_dialog_close">Close</string>
 
-    <!-- Profile Strings -->
+    <!-- Profile & Language Settings Strings -->
     <string name="profile_title">Profile &amp; Settings</string>
     <string name="profile_guest_badge">Guest Session</string>
     <string name="profile_guest_title">Guest Resident</string>
@@ -47,6 +47,11 @@
     <string name="profile_exit_guest_confirm_desc">You will return to the access choice screen. Your onboarding preference will be preserved.</string>
     <string name="profile_exit_guest_confirm_btn">Exit Guest Session</string>
     <string name="profile_cancel">Cancel</string>
+
+    <string name="language_selection_title">Select Language (भाषा चुनें)</string>
+    <string name="language_english">English</string>
+    <string name="language_hindi">हिंदी (Hindi)</string>
+    <string name="language_punjabi">ਪੰਜਾਬੀ (Punjabi)</string>
 
     <!-- Explore & Map Strings -->
     <string name="explore_title">Explore Active Spots</string>
@@ -129,4 +134,9 @@
     <string name="draft_empty_title">No Local Drafts</string>
     <string name="draft_empty_desc">You have no saved report drafts on this device. Spot a public waste site to create a new report!</string>
     <string name="draft_start_report_btn">Start New Report</string>
+
+    <!-- Accessibility Content Descriptions -->
+    <string name="cd_search_icon">Search Civic Resources</string>
+    <string name="cd_notifications_icon">Notification Center</string>
+    <string name="cd_filter_button">Open Report Filters</string>
 </resources>
