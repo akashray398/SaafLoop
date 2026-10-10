@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ਸਾਫ਼ਲੂਪ</string>
+
+    <!-- Onboarding Strings -->
+    <string name="onboarding_skip">ਛੱਡੋ</string>
+    <string name="onboarding_next">ਅੱਗੇ</string>
+    <string name="onboarding_back">ਪਿੱਛੇ</string>
+    <string name="onboarding_get_started">ਸ਼ੁਰੂ ਕਰੋ</string>
+    <string name="onboarding_done">ਹੋ ਗਿਆ</string>
+    <string name="onboarding_spot_title">ਕੂੜਾ ਨਿਸ਼ਾਨਬੱਧ ਕਰੋ</string>
+    <string name="onboarding_spot_desc">ਨਾਗਰਿਕ ਜਨਤਕ ਕੂੜੇ ਵਾਲੀਆਂ ਥਾਵਾਂ ਦੀ ਪਛਾਣ ਕਰਦੇ ਹਨ ਅਤੇ ਨਕਸ਼ੇ \'ਤੇ ਨਿਸ਼ਾਨਬੱਧ ਕਰਦੇ ਹਨ।</string>
+    <string name="onboarding_solve_title">ਮਿਲ ਕੇ ਹੱਲ ਕਰੋ</string>
+    <string name="onboarding_solve_desc">ਸਫਾਈ ਟੀਮਾਂ ਅਤੇ ਸਮਾਜਿਕ ਸੰਸਥਾਵਾਂ ਮਿਲ ਕੇ ਸਫਾਈ ਕਾਰਜ ਕਰਦੀਆਂ ਹਨ।</string>
+    <string name="onboarding_keep_title">ਸਾਫ਼ ਰੱਖੋ</string>
+    <string name="onboarding_keep_desc">ਤਸਦੀਕ ਦੁਆਰਾ ਇਹ ਸੁਨਿਸ਼ਚਿਤ ਕੀਤਾ ਜਾਂਦਾ ਹੈ ਕਿ ਸਾਫ਼ ਕੀਤੀਆਂ ਥਾਵਾਂ ਮੁੜ ਗੰਦੀਆਂ ਨਾ ਹੋਣ।</string>
+
+    <!-- Navigation & Core -->
+    <string name="access_welcome_title">ਸਾਫ਼ਲੂਪ ਵਿੱਚ ਜੀ ਆਇਆਂ ਨੂੰ</string>
+    <string name="access_welcome_subtitle">ਪਛਾਣੋ। ਹੱਲ ਕਰੋ। ਸਾਫ਼ ਰੱਖੋ।</string>
+    <string name="access_continue_guest">ਮਹਿਮਾਨ ਵਜੋਂ ਜਾਰੀ ਰੱਖੋ</string>
+
+    <!-- Profile & Language -->
+    <string name="profile_title">ਪ੍ਰੋਫਾਈਲ ਅਤੇ ਸੈਟਿੰਗਾਂ</string>
+    <string name="profile_guest_badge">ਮਹਿਮਾਨ ਸੈਸ਼ਨ</string>
+    <string name="profile_guest_title">ਮਹਿਮਾਨ ਨਾਗਰਿਕ</string>
+    <string name="language_selection_title">ਭਾਸ਼ਾ ਚੁਣੋ (Select Language)</string>
+    <string name="language_english">English</string>
+    <string name="language_hindi">हिंदी (Hindi)</string>
+    <string name="language_punjabi">ਪੰਜਾਬੀ (Punjabi)</string>
+
+    <!-- Explore & Report -->
+    <string name="explore_title">ਸਰਗਰਮ ਥਾਵਾਂ ਵੇਖੋ</string>
+    <string name="explore_report_waste_btn">ਕੂੜੇ ਦੀ ਰਿਪੋਰਟ ਕਰੋ</string>
+    <string name="explore_use_my_location">ਮੇਰੀ ਲੋਕੇਸ਼ਨ ਵਰਤੋ</string>
+    <string name="report_title">ਕੂੜੇ ਦੀ ਰਿਪੋਰਟ ਦਰਜ ਕਰੋ</string>
+    <string name="report_take_photo">ਫੋਟੋ ਖਿੱਚੋ</string>
+    <string name="report_choose_gallery">ਗੈਲਰੀ ਤੋਂ ਚੁਣੋ</string>
+    <string name="report_category_mixed">ਮਿਲਿਆ-ਜੁਲਿਆ ਕੂੜਾ</string>
+    <string name="report_category_plastic">ਪਲਾਸਟਿਕ ਕੂੜਾ</string>
+    <string name="report_category_overflow">ਓਵਰਫਲੋਅ ਡਸਟਬਿਨ</string>
+    <string name="report_category_debris">ਉਸਾਰੀ ਦਾ ਮਲਬਾ</string>
+    <string name="report_category_other">ਹੋਰ ਕੂੜਾ</string>
+
+    <!-- Accessibility Labels -->
+    <string name="cd_search_icon">ਖੋਜੋ</string>
+    <string name="cd_notifications_icon">ਨੋਟੀਫਿਕੇਸ਼ਨ ਸੈਂਟਰ</string>
+    <string name="cd_filter_button">ਫਿਲਟਰ ਖੋਲ੍ਹੋ</string>
+</resources>

@@ -21,6 +21,7 @@ import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.PersonOutline
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SupervisorAccount
@@ -47,6 +48,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.saafloop.R
+import com.example.saafloop.core.util.LocaleManager
+import com.example.saafloop.feature.localization.LanguageSelectionDialog
 
 @Composable
 fun ProfileScreen(
@@ -59,6 +62,8 @@ fun ProfileScreen(
 ) {
     val scrollState = rememberScrollState()
     var showExitConfirmation by remember { mutableStateOf(false) }
+    var showLanguageDialog by remember { mutableStateOf(false) }
+    var currentLangCode by remember { mutableStateOf("en") }
 
     Column(
         modifier = modifier
@@ -124,7 +129,64 @@ fun ProfileScreen(
             }
         }
 
-        // 2. Security & Privacy Settings Portal Section
+        // 2. Language Selection Card
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface
+            ),
+            shape = RoundedCornerShape(16.dp),
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Language,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(R.string.language_selection_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+
+                Text(
+                    text = "Select your preferred language: English, हिंदी (Hindi), or ਪੰਜਾਬੀ (Punjabi).",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+                )
+
+                OutlinedButton(
+                    onClick = { showLanguageDialog = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Language,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Change Language (ਭਾਸ਼ਾ ਬਦਲੋ)",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+
+        // 3. Security & Privacy Settings Portal Section
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -181,7 +243,7 @@ fun ProfileScreen(
             }
         }
 
-        // 3. Coordinator Review Portal Section
+        // 4. Coordinator Review Portal Section
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -241,7 +303,7 @@ fun ProfileScreen(
             }
         }
 
-        // 4. Field Worker Operations Portal Section
+        // 5. Field Worker Operations Portal Section
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
@@ -301,7 +363,7 @@ fun ProfileScreen(
             }
         }
 
-        // 5. App Settings & Onboarding Revisit
+        // 6. App Settings & Onboarding Revisit
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             OutlinedButton(
                 onClick = onNavigateToOnboarding,
@@ -338,6 +400,16 @@ fun ProfileScreen(
                 Text(text = stringResource(R.string.profile_exit_guest))
             }
         }
+    }
+
+    if (showLanguageDialog) {
+        LanguageSelectionDialog(
+            currentLanguageCode = currentLangCode,
+            onDismiss = { showLanguageDialog = false },
+            onSelectLanguage = { code ->
+                currentLangCode = code
+            }
+        )
     }
 
     if (showExitConfirmation) {
