@@ -6,20 +6,33 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
-import android.graphics.RectF
 import com.example.saafloop.core.model.CasePriority
 import com.example.saafloop.core.model.CivicMapMarker
 import com.example.saafloop.core.model.CivicMapType
 import org.maplibre.android.annotations.Icon
 import org.maplibre.android.annotations.IconFactory
+import java.util.Collections
 
 /**
- * Creates custom vector/bitmap map pin icons for MapLibre based on civic entity type,
- * status, priority, and cluster count.
+ * Creates custom vector/bitmap map pin icons for MapLibre with LRU cache
+ * to prevent unnecessary bitmap re-allocations and GC pressure during map panning.
  */
 object MapMarkerBitmapGenerator {
 
+    private const val MAX_CACHE_SIZE = 120
+    private val iconCache: MutableMap<String, Icon> = Collections.synchronizedMap(
+        object : LinkedHashMap<String, Icon>(MAX_CACHE_SIZE, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Icon>?): Boolean {
+                return size > MAX_CACHE_SIZE
+            }
+        }
+    )
+
     fun createMapIcon(context: Context, marker: CivicMapMarker): Icon {
+        val cacheKey = "${marker.type}_${marker.priority}_${marker.statusLabel}_${marker.clusterCount}"
+        val cachedIcon = iconCache[cacheKey]
+        if (cachedIcon != null) return cachedIcon
+
         val density = context.resources.displayMetrics.density
         val sizePx = (36 * density).toInt()
         val bitmap = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
@@ -49,20 +62,18 @@ object MapMarkerBitmapGenerator {
             }
 
             CivicMapType.REPORT -> {
-                // Pin color based on status or priority
                 val pinColor = when {
-                    marker.priority == CasePriority.CRITICAL || marker.priority == CasePriority.HIGH -> Color.parseColor("#D32F2F") // Red
-                    marker.statusLabel.contains("Being Addressed", ignoreCase = true) -> Color.parseColor("#0288D1") // Blue
-                    marker.statusLabel.contains("Verified", ignoreCase = true) -> Color.parseColor("#2E7D32") // Green
-                    else -> Color.parseColor("#E65100") // Amber/Orange
+                    marker.priority == CasePriority.CRITICAL || marker.priority == CasePriority.HIGH -> Color.parseColor("#D32F2F")
+                    marker.statusLabel.contains("Being Addressed", ignoreCase = true) -> Color.parseColor("#0288D1")
+                    marker.statusLabel.contains("Verified", ignoreCase = true) -> Color.parseColor("#2E7D32")
+                    else -> Color.parseColor("#E65100")
                 }
 
                 drawPinWithSymbol(canvas, sizePx, density, paint, textPaint, pinColor, "●")
             }
 
             CivicMapType.FIELD_TASK -> {
-                // Diamond shape for active field task
-                val pinColor = Color.parseColor("#7B1FA2") // Purple/Indigo
+                val pinColor = Color.parseColor("#7B1FA2")
                 paint.color = pinColor
                 paint.style = Paint.Style.FILL
 
@@ -85,19 +96,19 @@ object MapMarkerBitmapGenerator {
             }
 
             CivicMapType.COMMUNITY_ACTIVITY -> {
-                // Star / Activity pin
-                val pinColor = Color.parseColor("#00796B") // Teal/Green
+                val pinColor = Color.parseColor("#00796B")
                 drawPinWithSymbol(canvas, sizePx, density, paint, textPaint, pinColor, "★")
             }
 
             CivicMapType.RESOLVED_ISSUE -> {
-                // Checkmark / Resolved area pin
-                val pinColor = Color.parseColor("#2E7D32") // Emerald Green
+                val pinColor = Color.parseColor("#2E7D32")
                 drawPinWithSymbol(canvas, sizePx, density, paint, textPaint, pinColor, "✓")
             }
         }
 
-        return IconFactory.getInstance(context).fromBitmap(bitmap)
+        val generatedIcon = IconFactory.getInstance(context).fromBitmap(bitmap)
+        iconCache[cacheKey] = generatedIcon
+        return generatedIcon
     }
 
     private fun drawPinWithSymbol(
@@ -109,20 +120,21 @@ object MapMarkerBitmapGenerator {
         color: Int,
         symbol: String
     ) {
-        // Base pin circle
         paint.color = color
         paint.style = Paint.Style.FILL
         canvas.drawCircle(sizePx / 2f, sizePx / 2f - 2f * density, sizePx / 2f - 4f * density, paint)
 
-        // White border
         paint.color = Color.WHITE
         paint.style = Paint.Style.STROKE
         paint.strokeWidth = 2.5f * density
         canvas.drawCircle(sizePx / 2f, sizePx / 2f - 2f * density, sizePx / 2f - 4f * density, paint)
 
-        // Symbol text
         textPaint.color = Color.WHITE
         val textY = (sizePx / 2f - 2f * density) - (textPaint.descent() + textPaint.ascent()) / 2f
         canvas.drawText(symbol, sizePx / 2f, textY, textPaint)
+    }
+
+    fun clearCache() {
+        iconCache.clear()
     }
 }

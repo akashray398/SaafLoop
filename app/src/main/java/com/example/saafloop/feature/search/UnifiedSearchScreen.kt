@@ -201,7 +201,7 @@ fun UnifiedSearchScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    items(results) { item ->
+                    items(results, key = { it.id }) { item ->
                         SearchResultCard(
                             item = item,
                             onClick = {

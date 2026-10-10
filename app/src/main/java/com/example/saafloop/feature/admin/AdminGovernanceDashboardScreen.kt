@@ -147,13 +147,13 @@ fun AdminGovernanceDashboardScreen(
             // Tab Content List
             when (selectedTabIndex) {
                 0 -> LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    items(cases) { item ->
+                    items(cases, key = { it.caseId }) { item ->
                         GovernanceCaseCard(caseItem = item, onClick = { activeCaseForReview = item })
                     }
                 }
 
                 1 -> LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    items(appeals) { appeal ->
+                    items(appeals, key = { it.appealId }) { appeal ->
                         GovernanceAppealCard(
                             appeal = appeal,
                             onResolve = { outcome -> viewModel.resolveAppeal(appeal.appealId, outcome, "Reviewed by Platform Admin") }
@@ -162,7 +162,7 @@ fun AdminGovernanceDashboardScreen(
                 }
 
                 2 -> LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    items(orgReviews) { review ->
+                    items(orgReviews, key = { it.reviewId }) { review ->
                         OrgReviewCard(
                             review = review,
                             onApprove = { viewModel.updateOrgVerification(review.reviewId, "VERIFIED", "Verification docs approved.") },
@@ -172,7 +172,7 @@ fun AdminGovernanceDashboardScreen(
                 }
 
                 3 -> LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(auditLogs) { log ->
+                    items(auditLogs, key = { it.eventId }) { log ->
                         AuditLogCard(log = log)
                     }
                 }

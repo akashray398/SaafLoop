@@ -1,10 +1,17 @@
 package com.example.saafloop.core.database.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import java.util.UUID
 
-@Entity(tableName = "report_drafts")
+@Entity(
+    tableName = "report_drafts",
+    indices = [
+        Index(value = ["updatedAt"]),
+        Index(value = ["status"])
+    ]
+)
 data class ReportDraftEntity(
     @PrimaryKey
     val draftId: String = UUID.randomUUID().toString(),
