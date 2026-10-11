@@ -6,3 +6,6 @@ TECH STACK
 - minSdk 26, compileSdk 37, targetSdk 36
 - Use compatible stable dependencies available to the project
 - No backend, authentication, maps, or real reporting yet
+
+clone this repo: 
+git clone : https://github.com/akashray398/SaafLoop.git
