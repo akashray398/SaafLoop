@@ -6,6 +6,11 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -26,7 +31,10 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -62,6 +70,7 @@ import com.example.saafloop.feature.profile.ProfileScreen
 import com.example.saafloop.feature.profile.SecurityPrivacySettingsScreen
 import com.example.saafloop.feature.report.ReportWasteScreen
 import com.example.saafloop.feature.search.UnifiedSearchScreen
+import com.example.saafloop.feature.splash.SaafLoopSplashScreen
 import com.example.saafloop.ui.MainUiState
 import com.example.saafloop.ui.MainViewModel
 import com.example.saafloop.ui.theme.SaafLoopTheme
@@ -86,14 +95,29 @@ class MainActivity : ComponentActivity() {
         setContent {
             SaafLoopTheme {
                 val uiState by viewModel.uiState.collectAsState()
+                var isSplashActive by rememberSaveable { mutableStateOf(true) }
 
                 when (val state = uiState) {
                     is MainUiState.Loading -> {}
                     is MainUiState.Success -> {
-                        SaafLoopAppContent(
-                            initialState = state,
-                            viewModel = viewModel
-                        )
+                        AnimatedContent(
+                            targetState = isSplashActive,
+                            transitionSpec = {
+                                fadeIn(animationSpec = tween(400)) togetherWith fadeOut(animationSpec = tween(400))
+                            },
+                            label = "SplashCrossfade"
+                        ) { showSplash ->
+                            if (showSplash) {
+                                SaafLoopSplashScreen(
+                                    onSplashComplete = { isSplashActive = false }
+                                )
+                            } else {
+                                SaafLoopAppContent(
+                                    initialState = state,
+                                    viewModel = viewModel
+                                )
+                            }
+                        }
                     }
                 }
             }

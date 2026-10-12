@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <!-- SaafLoop Neo-Eco Futurism Color Tokens -->
+    <color name="neo_midnight_green">#071713</color>
+    <color name="neo_forest_surface">#10251E</color>
+    <color name="neo_electric_lime">#C7FF4D</color>
+    <color name="neo_mint">#7CEBC0</color>
+    <color name="neo_controlled_cyan">#57DDE0</color>
+    <color name="neo_primary_text">#F3F8F1</color>
+    <color name="neo_secondary_text">#B4C8BC</color>
+    <color name="neo_subtle_border">#30483B</color>
+
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>

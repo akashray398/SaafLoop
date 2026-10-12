@@ -1,27 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- SaafLoop Branded Location Pin Outer Outline -->
+    <!-- Left Loop Ribbon (Mint #7CEBC0) -->
     <path
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="5"
+        android:strokeColor="#7CEBC0"
+        android:strokeWidth="6"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M54,82 C40,65 34,54 34,42 C34,31 43,22 54,22 C65,22 74,31 74,42 C74,54 68,65 54,82 Z" />
+        android:pathData="M38,54 C38,44 46,36 54,46 C62,56 70,64 70,54" />
 
-    <!-- Inner Continuous Cleanup Loop Shape (Fresh Teal) -->
+    <!-- Right Loop Ribbon (Electric Lime #C7FF4D) -->
     <path
-        android:strokeColor="#00CBC4"
-        android:strokeWidth="5"
+        android:strokeColor="#C7FF4D"
+        android:strokeWidth="6"
         android:strokeLineCap="round"
-        android:pathData="M46,42 A8,8 0,1 1,62,42 A8,8 0,1 1,46,42" />
+        android:strokeLineJoin="round"
+        android:pathData="M70,54 C70,44 62,36 54,46 C46,56 38,64 38,54" />
 
-    <!-- Central Inner Dot representing the trust anchor -->
+    <!-- Outer Location Pin Outline Shield (Soft Mint #7CEBC0) -->
     <path
-        android:fillColor="#00CBC4"
-        android:pathData="M54,42m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-4 0" />
+        android:strokeColor="#7CEBC0"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:pathData="M54,78 C42,64 34,54 34,42 C34,31 43,22 54,22 C65,22 74,31 74,42 C74,54 66,64 54,78 Z" />
+
+    <!-- Renewal Spark / Center Anchor Dot (Electric Lime #C7FF4D) -->
+    <path
+        android:fillColor="#C7FF4D"
+        android:pathData="M54,42m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+
+    <!-- Top Renewal Leaf Accent (Controlled Cyan #57DDE0) -->
+    <path
+        android:fillColor="#57DDE0"
+        android:pathData="M54,22 C56,18 60,16 62,18 C62,20 60,24 54,22 Z" />
 
 </vector>

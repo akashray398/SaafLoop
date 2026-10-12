@@ -3,9 +3,9 @@
     <!-- Base application theme -->
     <style name="Theme.SaafLoop" parent="android:Theme.Material.Light.NoActionBar" />
 
-    <!-- Splash Screen theme -->
+    <!-- Native SplashScreen API Theme -->
     <style name="Theme.SaafLoop.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">#F8F9FA</item>
+        <item name="windowSplashScreenBackground">@color/neo_midnight_green</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
         <item name="postSplashScreenTheme">@style/Theme.SaafLoop</item>
     </style>
