@@ -188,7 +188,6 @@ class RemoteCaseRepositoryImpl(private val context: Context) : RemoteCaseReposit
         val firestore = FirebaseFirestore.getInstance()
         val listener = firestore.collection("cases")
             .whereEqualTo("authorUid", uid)
-            .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) {
                     trySend(emptyList())
@@ -219,7 +218,7 @@ class RemoteCaseRepositoryImpl(private val context: Context) : RemoteCaseReposit
                         null
                     }
                 }
-                trySend(cases)
+                trySend(cases.sortedByDescending { it.createdAt })
             }
 
         awaitClose { listener.remove() }

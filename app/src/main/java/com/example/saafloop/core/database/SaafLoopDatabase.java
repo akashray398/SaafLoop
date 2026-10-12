@@ -7,7 +7,7 @@ import androidx.room.RoomDatabase;
 import com.example.saafloop.core.database.dao.ReportDraftDao;
 import com.example.saafloop.core.database.entity.ReportDraftEntity;
 
-@Database(entities = {ReportDraftEntity.class}, version = 1, exportSchema = false)
+@Database(entities = {ReportDraftEntity.class}, version = 2, exportSchema = false)
 public abstract class SaafLoopDatabase extends RoomDatabase {
 
     public abstract ReportDraftDao reportDraftDao();
@@ -22,7 +22,9 @@ public abstract class SaafLoopDatabase extends RoomDatabase {
                             context.getApplicationContext(),
                             SaafLoopDatabase.class,
                             "saafloop_database"
-                    ).build();
+                    )
+                    .fallbackToDestructiveMigration()
+                    .build();
                 }
             }
         }

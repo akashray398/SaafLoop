@@ -33,8 +33,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SecondaryTabRow
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -94,7 +94,7 @@ fun ActivityScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Tab Selector (Drafts vs Pending vs Confirmed Cases)
-        SecondaryTabRow(selectedTabIndex = selectedTabIndex) {
+        TabRow(selectedTabIndex = selectedTabIndex) {
             Tab(
                 selected = selectedTabIndex == 0,
                 onClick = { selectedTabIndex = 0 },
