@@ -5,32 +5,27 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Outer Location Pin Outline Shield -->
-    <path
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="4"
-        android:strokeLineCap="round"
-        android:pathData="M54,78 C42,64 34,54 34,42 C34,31 43,22 54,22 C65,22 74,31 74,42 C74,54 66,64 54,78 Z" />
-
-    <!-- Left Loop Ribbon -->
+    <!-- Flowing Ribbon Loop -->
     <path
         android:strokeColor="#FFFFFF"
         android:strokeWidth="6"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M38,54 C38,44 46,36 54,46 C62,56 70,64 70,54" />
+        android:pathData="M54,24 C78,26 84,58 66,78 C44,88 24,74 24,54 C24,36 40,24 54,24 Z" />
 
-    <!-- Right Loop Ribbon -->
-    <path
-        android:strokeColor="#FFFFFF"
-        android:strokeWidth="6"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M70,54 C70,44 62,36 54,46 C46,56 38,64 38,54" />
-
-    <!-- Renewal Spark / Center Anchor Dot -->
+    <!-- Top Leaf -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,42m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+        android:pathData="M56,24 C54,12 68,9 80,16 C80,26 68,30 56,24 Z" />
+
+    <!-- Community People Head -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,62m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+
+    <!-- Location Pin -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,50 C44,40 42,32 54,32 C66,32 64,40 54,50 Z" />
 
 </vector>
