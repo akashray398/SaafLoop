@@ -15,11 +15,12 @@ import com.google.firebase.firestore.Query
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.util.Calendar
 import java.util.UUID
 
 interface NotificationRepository {
@@ -27,6 +28,11 @@ interface NotificationRepository {
     fun observeUnreadCount(userId: String, userRole: String): Flow<Int>
     suspend fun markNotificationAsRead(notificationId: String): Result<Unit>
     suspend fun markAllNotificationsAsRead(userId: String): Result<Unit>
+    suspend fun deleteNotification(notificationId: String): Result<Unit>
+    suspend fun deleteNotifications(notificationIds: List<String>): Result<Unit>
+    suspend fun archiveNotification(notificationId: String): Result<Unit>
+    suspend fun archiveNotifications(notificationIds: List<String>): Result<Unit>
+    suspend fun toggleReadStatus(notificationId: String): Result<Unit>
     fun observeNotificationPreferences(userId: String): Flow<NotificationPreferences>
     suspend fun updateNotificationPreferences(userId: String, prefs: NotificationPreferences): Result<Unit>
     suspend fun registerUserDevice(device: UserDevice): Result<Unit>
@@ -51,6 +57,8 @@ interface NotificationRepository {
 
 class NotificationRepositoryImpl(private val context: Context) : NotificationRepository {
 
+    private val localNotificationsState = MutableStateFlow(createLocalSampleNotifications())
+
     private fun isFirebaseConfigured(): Boolean {
         return try {
             FirebaseApp.getApps(context).isNotEmpty() && FirebaseFirestore.getInstance().app != null
@@ -61,19 +69,27 @@ class NotificationRepositoryImpl(private val context: Context) : NotificationRep
 
     override fun observeUserNotifications(userId: String, userRole: String): Flow<List<NotificationItem>> = callbackFlow {
         if (!isFirebaseConfigured()) {
-            val initialFallback = createLocalSampleNotifications()
-            trySend(initialFallback)
-            close()
+            val job = launch {
+                localNotificationsState.collect { items ->
+                    val filtered = items.filter { item ->
+                        val isForUser = item.recipientUserId == "ALL" || item.recipientUserId == userId
+                        val isForRole = item.recipientRole == "ALL" || item.recipientRole.equals(userRole, ignoreCase = true)
+                        isForUser && isForRole
+                    }
+                    trySend(filtered)
+                }
+            }
+            awaitClose { job.cancel() }
             return@callbackFlow
         }
 
         val firestore = FirebaseFirestore.getInstance()
         val listener = firestore.collection("notifications")
             .orderBy("createdAt", Query.Direction.DESCENDING)
-            .limit(50)
+            .limit(100)
             .addSnapshotListener { snapshot, error ->
                 if (error != null || snapshot == null) {
-                    trySend(createLocalSampleNotifications())
+                    trySend(localNotificationsState.value)
                     return@addSnapshotListener
                 }
 
@@ -82,7 +98,6 @@ class NotificationRepositoryImpl(private val context: Context) : NotificationRep
                         val recUser = doc.getString("recipientUserId") ?: "ALL"
                         val recRole = doc.getString("recipientRole") ?: "ALL"
 
-                        // Filter by authorization / recipient rules
                         val isForUser = recUser == "ALL" || recUser == userId
                         val isForRole = recRole == "ALL" || recRole.equals(userRole, ignoreCase = true)
 
@@ -106,6 +121,7 @@ class NotificationRepositoryImpl(private val context: Context) : NotificationRep
                                 entityType = doc.getString("entityType") ?: "",
                                 entityId = doc.getString("entityId") ?: "",
                                 status = notifStatus,
+                                isArchived = doc.getBoolean("isArchived") ?: (notifStatus == NotificationStatus.ARCHIVED),
                                 createdAt = doc.getLong("createdAt") ?: System.currentTimeMillis(),
                                 readAt = doc.getLong("readAt"),
                                 expiresAt = doc.getLong("expiresAt")
@@ -124,51 +140,128 @@ class NotificationRepositoryImpl(private val context: Context) : NotificationRep
 
     override fun observeUnreadCount(userId: String, userRole: String): Flow<Int> {
         return observeUserNotifications(userId, userRole).map { notifications ->
-            notifications.count { !it.isRead }
+            notifications.count { !it.isRead && !it.isArchived }
         }
     }
 
     override suspend fun markNotificationAsRead(notificationId: String): Result<Unit> = withContext(Dispatchers.IO) {
-        if (!isFirebaseConfigured() || notificationId.isBlank()) return@withContext Result.success(Unit)
+        updateLocalItem(notificationId) { it.copy(status = NotificationStatus.READ, readAt = System.currentTimeMillis()) }
 
-        try {
-            val firestore = FirebaseFirestore.getInstance()
-            firestore.collection("notifications")
-                .document(notificationId)
-                .update(
-                    mapOf(
-                        "status" to NotificationStatus.READ.name,
-                        "readAt" to System.currentTimeMillis()
-                    )
-                )
-                .await()
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+        if (isFirebaseConfigured() && notificationId.isNotBlank()) {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+                firestore.collection("notifications")
+                    .document(notificationId)
+                    .update(mapOf("status" to NotificationStatus.READ.name, "readAt" to System.currentTimeMillis()))
+                    .await()
+            } catch (_: Exception) {}
         }
+        Result.success(Unit)
     }
 
     override suspend fun markAllNotificationsAsRead(userId: String): Result<Unit> = withContext(Dispatchers.IO) {
-        if (!isFirebaseConfigured()) return@withContext Result.success(Unit)
-
-        try {
-            val firestore = FirebaseFirestore.getInstance()
-            val query = firestore.collection("notifications")
-                .whereEqualTo("status", NotificationStatus.SENT.name)
-                .get()
-                .await()
-
-            val batch = firestore.batch()
-            query.documents.forEach { doc ->
-                batch.update(doc.reference, mapOf("status" to NotificationStatus.READ.name, "readAt" to System.currentTimeMillis()))
-            }
-            batch.commit().await()
-
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
+        val current = localNotificationsState.value.map {
+            it.copy(status = NotificationStatus.READ, readAt = System.currentTimeMillis())
         }
+        localNotificationsState.value = current
+
+        if (isFirebaseConfigured()) {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+                val query = firestore.collection("notifications").get().await()
+                val batch = firestore.batch()
+                query.documents.forEach { doc ->
+                    batch.update(doc.reference, mapOf("status" to NotificationStatus.READ.name, "readAt" to System.currentTimeMillis()))
+                }
+                batch.commit().await()
+            } catch (_: Exception) {}
+        }
+        Result.success(Unit)
+    }
+
+    override suspend fun deleteNotification(notificationId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        localNotificationsState.value = localNotificationsState.value.filter { it.notificationId != notificationId }
+
+        if (isFirebaseConfigured() && notificationId.isNotBlank()) {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+                firestore.collection("notifications").document(notificationId).delete().await()
+            } catch (_: Exception) {}
+        }
+        Result.success(Unit)
+    }
+
+    override suspend fun deleteNotifications(notificationIds: List<String>): Result<Unit> = withContext(Dispatchers.IO) {
+        val idSet = notificationIds.toSet()
+        localNotificationsState.value = localNotificationsState.value.filter { it.notificationId !in idSet }
+
+        if (isFirebaseConfigured()) {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+                val batch = firestore.batch()
+                notificationIds.forEach { id ->
+                    batch.delete(firestore.collection("notifications").document(id))
+                }
+                batch.commit().await()
+            } catch (_: Exception) {}
+        }
+        Result.success(Unit)
+    }
+
+    override suspend fun archiveNotification(notificationId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        updateLocalItem(notificationId) { it.copy(isArchived = true, status = NotificationStatus.ARCHIVED) }
+
+        if (isFirebaseConfigured() && notificationId.isNotBlank()) {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+                firestore.collection("notifications")
+                    .document(notificationId)
+                    .update(mapOf("isArchived" to true, "status" to NotificationStatus.ARCHIVED.name))
+                    .await()
+            } catch (_: Exception) {}
+        }
+        Result.success(Unit)
+    }
+
+    override suspend fun archiveNotifications(notificationIds: List<String>): Result<Unit> = withContext(Dispatchers.IO) {
+        val idSet = notificationIds.toSet()
+        localNotificationsState.value = localNotificationsState.value.map {
+            if (it.notificationId in idSet) it.copy(isArchived = true, status = NotificationStatus.ARCHIVED) else it
+        }
+
+        if (isFirebaseConfigured()) {
+            try {
+                val firestore = FirebaseFirestore.getInstance()
+                val batch = firestore.batch()
+                notificationIds.forEach { id ->
+                    batch.update(firestore.collection("notifications").document(id), mapOf("isArchived" to true, "status" to NotificationStatus.ARCHIVED.name))
+                }
+                batch.commit().await()
+            } catch (_: Exception) {}
+        }
+        Result.success(Unit)
+    }
+
+    override suspend fun toggleReadStatus(notificationId: String): Result<Unit> = withContext(Dispatchers.IO) {
+        val target = localNotificationsState.value.find { it.notificationId == notificationId }
+        if (target != null) {
+            val isNowRead = !target.isRead
+            val newStatus = if (isNowRead) NotificationStatus.READ else NotificationStatus.SENT
+            val newReadAt = if (isNowRead) System.currentTimeMillis() else null
+
+            updateLocalItem(notificationId) { it.copy(status = newStatus, readAt = newReadAt) }
+
+            if (isFirebaseConfigured() && notificationId.isNotBlank()) {
+                try {
+                    val firestore = FirebaseFirestore.getInstance()
+                    firestore.collection("notifications")
+                        .document(notificationId)
+                        .update(mapOf("status" to newStatus.name, "readAt" to newReadAt))
+                        .await()
+                } catch (_: Exception) {}
+            }
+        }
+        Result.success(Unit)
     }
 
     override fun observeNotificationPreferences(userId: String): Flow<NotificationPreferences> = callbackFlow {
@@ -283,6 +376,9 @@ class NotificationRepositoryImpl(private val context: Context) : NotificationRep
             createdAt = System.currentTimeMillis()
         )
 
+        // Prepend to local state
+        localNotificationsState.value = listOf(notifItem) + localNotificationsState.value.filter { it.notificationId != notificationId }
+
         if (isFirebaseConfigured()) {
             try {
                 val firestore = FirebaseFirestore.getInstance()
@@ -291,7 +387,6 @@ class NotificationRepositoryImpl(private val context: Context) : NotificationRep
                     .set(notifItem)
                     .await()
             } catch (_: Exception) {
-                // Fallback local dispatch
             }
         }
 
@@ -319,6 +414,12 @@ class NotificationRepositoryImpl(private val context: Context) : NotificationRep
         )
     }
 
+    private fun updateLocalItem(notificationId: String, transform: (NotificationItem) -> NotificationItem) {
+        localNotificationsState.value = localNotificationsState.value.map { item ->
+            if (item.notificationId == notificationId) transform(item) else item
+        }
+    }
+
     private fun createLocalSampleNotifications(): List<NotificationItem> {
         val now = System.currentTimeMillis()
         return listOf(
@@ -329,7 +430,7 @@ class NotificationRepositoryImpl(private val context: Context) : NotificationRep
                 type = NotificationType.REPORT,
                 eventType = NotificationEventType.REPORT_VERIFIED,
                 title = "Report Verified",
-                body = "Your waste report at Sector 68 has been verified and queued for cleanup dispatch.",
+                body = "Your report at Sector 68 has been verified and queued for cleanup dispatch.",
                 priority = NotificationPriority.NORMAL,
                 deepLink = "saafloop://report_review/case_sample_1",
                 entityType = "REPORT",
@@ -339,10 +440,10 @@ class NotificationRepositoryImpl(private val context: Context) : NotificationRep
             NotificationItem(
                 notificationId = "n_2",
                 recipientUserId = "ALL",
-                recipientRole = "VOLUNTEER",
+                recipientRole = "ALL",
                 type = NotificationType.TASK,
                 eventType = NotificationEventType.TASK_ASSIGNED,
-                title = "New Field Task Assigned",
+                title = "Field Task Assigned",
                 body = "You have been assigned to Sector 70 Overflowing Bin cleanup drive.",
                 priority = NotificationPriority.HIGH,
                 deepLink = "saafloop://field_task_detail/task_sample_1",
@@ -356,7 +457,7 @@ class NotificationRepositoryImpl(private val context: Context) : NotificationRep
                 recipientRole = "ALL",
                 type = NotificationType.COMMUNITY,
                 eventType = NotificationEventType.ACTIVITY_PUBLISHED,
-                title = "Weekend Cleanup Drive",
+                title = "Weekend Community Cleanup",
                 body = "SaafLoop Community Drive starts Sunday 8 AM in Phase 7 Market.",
                 priority = NotificationPriority.NORMAL,
                 deepLink = "saafloop://activity_detail/act_sample_1",
@@ -367,7 +468,7 @@ class NotificationRepositoryImpl(private val context: Context) : NotificationRep
             NotificationItem(
                 notificationId = "n_4",
                 recipientUserId = "ALL",
-                recipientRole = "COORDINATOR",
+                recipientRole = "ALL",
                 type = NotificationType.AI,
                 eventType = NotificationEventType.AI_INSIGHT_CREATED,
                 title = "Hotspot Insight Available",

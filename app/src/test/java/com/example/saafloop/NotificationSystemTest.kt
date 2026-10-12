@@ -71,6 +71,18 @@ class NotificationSystemTest {
     }
 
     @Test
+    fun archiveAndDeleteNotifications_executesSuccessfully() = runBlocking {
+        val archiveResult = repository.archiveNotification("n_1")
+        assertTrue(archiveResult.isSuccess)
+
+        val deleteResult = repository.deleteNotification("n_2")
+        assertTrue(deleteResult.isSuccess)
+
+        val updatedList = repository.observeUserNotifications("user_123", "CITIZEN").first()
+        assertTrue(updatedList.none { it.notificationId == "n_2" })
+    }
+
+    @Test
     fun deepLinkParsing_resolvesEntityRoutesCorrectly() {
         val reportDeepLink = "saafloop://report_review/case_123"
         val taskDeepLink = "saafloop://field_task_detail/task_456"

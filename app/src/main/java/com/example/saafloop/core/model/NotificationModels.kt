@@ -53,6 +53,7 @@ enum class NotificationStatus {
     SENT,
     DELIVERED,
     READ,
+    ARCHIVED,
     EXPIRED,
     CANCELLED
 }
@@ -71,6 +72,7 @@ data class NotificationItem(
     val entityType: String = "",
     val entityId: String = "",
     val status: NotificationStatus = NotificationStatus.SENT,
+    val isArchived: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
     val readAt: Long? = null,
     val expiresAt: Long? = null,

@@ -1,8 +1,12 @@
 package com.example.saafloop.feature.notification
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,16 +26,27 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckBox
+import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DoneAll
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.MarkEmailRead
+import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.ReportProblem
+import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
@@ -76,6 +91,8 @@ fun NotificationCenterScreen(
     val selectedTab by viewModel.selectedTab.collectAsState()
     val notifications by viewModel.notificationsState.collectAsState()
     val unreadCount by viewModel.unreadCountState.collectAsState()
+    val isSelectionMode by viewModel.isSelectionMode.collectAsState()
+    val selectedIds by viewModel.selectedNotificationIds.collectAsState()
 
     Scaffold(
         topBar = {
@@ -83,39 +100,67 @@ fun NotificationCenterScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Notification Center",
+                            text = if (isSelectionMode) "${selectedIds.size} selected" else "Notification Center",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
-                        Text(
-                            text = if (unreadCount > 0) "$unreadCount unread updates" else "All caught up",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
+                        if (!isSelectionMode) {
+                            Text(
+                                text = if (unreadCount > 0) "$unreadCount unread updates" else "All caught up",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        }
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(
+                        onClick = {
+                            if (isSelectionMode) {
+                                viewModel.exitSelectionMode()
+                            } else {
+                                onBackClick()
+                            }
+                        }
+                    ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
+                            imageVector = if (isSelectionMode) Icons.Default.Close else Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = if (isSelectionMode) "Close selection" else "Back"
                         )
                     }
                 },
                 actions = {
-                    if (unreadCount > 0) {
-                        TextButton(onClick = { viewModel.markAllAsRead() }) {
-                            Icon(imageVector = Icons.Default.DoneAll, contentDescription = null, modifier = Modifier.size(16.dp))
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(text = "Read All", fontWeight = FontWeight.Bold)
+                    if (isSelectionMode) {
+                        IconButton(onClick = { viewModel.selectAllNotifications() }) {
+                            Icon(imageVector = Icons.Default.SelectAll, contentDescription = "Select All")
                         }
-                    }
+                        if (selectedIds.isNotEmpty()) {
+                            IconButton(onClick = { viewModel.archiveSelectedNotifications() }) {
+                                Icon(imageVector = Icons.Default.Archive, contentDescription = "Archive Selected")
+                            }
+                            IconButton(onClick = { viewModel.deleteSelectedNotifications() }) {
+                                Icon(imageVector = Icons.Default.Delete, contentDescription = "Delete Selected", tint = MaterialTheme.colorScheme.error)
+                            }
+                        }
+                    } else {
+                        IconButton(onClick = { viewModel.toggleSelectionMode() }) {
+                            Icon(imageVector = Icons.Default.Checklist, contentDescription = "Selection Mode")
+                        }
 
-                    IconButton(onClick = onOpenPreferences) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = "Notification Settings"
-                        )
+                        if (unreadCount > 0) {
+                            TextButton(onClick = { viewModel.markAllAsRead() }) {
+                                Icon(imageVector = Icons.Default.DoneAll, contentDescription = null, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text(text = "Read All", fontWeight = FontWeight.Bold)
+                            }
+                        }
+
+                        IconButton(onClick = onOpenPreferences) {
+                            Icon(
+                                imageVector = Icons.Default.Settings,
+                                contentDescription = "Notification Settings"
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -168,13 +213,13 @@ fun NotificationCenterScreen(
                             modifier = Modifier.size(48.dp)
                         )
                         Text(
-                            text = "You're all caught up!",
+                            text = if (selectedTab == NotificationTabFilter.ARCHIVED) "No archived notifications" else "You're all caught up!",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "No new notifications in this category.",
+                            text = "No notifications in this category.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -186,13 +231,32 @@ fun NotificationCenterScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(notifications, key = { it.notificationId }) { item ->
+                        val isSelected = selectedIds.contains(item.notificationId)
                         NotificationItemCard(
                             item = item,
-                            onClick = {
-                                viewModel.markAsRead(item.notificationId)
-                                if (item.deepLink.isNotBlank()) {
-                                    onNavigateToDeepLink(item.deepLink)
+                            isSelectionMode = isSelectionMode,
+                            isSelected = isSelected,
+                            onCardClick = {
+                                if (isSelectionMode) {
+                                    viewModel.toggleNotificationSelection(item.notificationId)
+                                } else {
+                                    viewModel.markAsRead(item.notificationId)
+                                    if (item.deepLink.isNotBlank()) {
+                                        onNavigateToDeepLink(item.deepLink)
+                                    }
                                 }
+                            },
+                            onCardLongClick = {
+                                viewModel.toggleNotificationSelection(item.notificationId)
+                            },
+                            onToggleRead = {
+                                viewModel.toggleReadStatus(item.notificationId)
+                            },
+                            onArchive = {
+                                viewModel.archiveNotification(item.notificationId)
+                            },
+                            onDelete = {
+                                viewModel.deleteNotification(item.notificationId)
                             }
                         )
                     }
@@ -202,117 +266,191 @@ fun NotificationCenterScreen(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun NotificationItemCard(
     item: NotificationItem,
-    onClick: () -> Unit
+    isSelectionMode: Boolean,
+    isSelected: Boolean,
+    onCardClick: () -> Unit,
+    onCardLongClick: () -> Unit,
+    onToggleRead: () -> Unit,
+    onArchive: () -> Unit,
+    onDelete: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .combinedClickable(
+                onClick = onCardClick,
+                onLongClick = onCardLongClick
+            )
             .semantics {
                 contentDescription = "${item.title}, ${item.body}, ${if (item.isRead) "Read" else "Unread"}"
             },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (item.isRead)
-                MaterialTheme.colorScheme.surface
-            else
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+            containerColor = when {
+                isSelected -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                !item.isRead -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+                else -> MaterialTheme.colorScheme.surface
+            }
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = if (item.isRead) 1.dp else 3.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        border = androidx.compose.foundation.BorderStroke(
+            width = if (isSelected) 2.dp else 1.dp,
+            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+        )
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.Top
+                .padding(12.dp)
         ) {
-            // Unread Indicator Dot + Type Icon
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(getNotificationBgColor(item.type)),
-                contentAlignment = Alignment.Center
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top
             ) {
-                Icon(
-                    imageVector = getNotificationIcon(item.type),
-                    contentDescription = null,
-                    tint = getNotificationIconColor(item.type),
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = item.title,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = if (item.isRead) FontWeight.SemiBold else FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    Spacer(modifier = Modifier.width(6.dp))
-
-                    Text(
-                        text = formatRelativeTime(item.createdAt),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        fontSize = 11.sp
+                if (isSelectionMode) {
+                    Checkbox(
+                        checked = isSelected,
+                        onCheckedChange = { onCardClick() },
+                        modifier = Modifier.padding(end = 8.dp)
                     )
                 }
 
-                Text(
-                    text = item.body,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+                // Type Icon
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(getNotificationBgColor(item.type)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = getNotificationIcon(item.type),
+                        contentDescription = null,
+                        tint = getNotificationIconColor(item.type),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
 
-                if (item.priority == NotificationPriority.HIGH || item.priority == NotificationPriority.CRITICAL) {
-                    Box(
-                        modifier = Modifier
-                            .padding(top = 2.dp)
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(Color(0xFFD32F2F).copy(alpha = 0.15f))
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "${item.priority.label} Alert",
+                            text = item.title,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = if (item.isRead) FontWeight.SemiBold else FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        Spacer(modifier = Modifier.width(6.dp))
+
+                        Text(
+                            text = formatRelativeTime(item.createdAt),
                             style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = Color(0xFFD32F2F),
-                            fontSize = 10.sp
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 11.sp
+                        )
+                    }
+
+                    Text(
+                        text = item.body,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+
+                    if (item.priority == NotificationPriority.HIGH || item.priority == NotificationPriority.CRITICAL) {
+                        Box(
+                            modifier = Modifier
+                                .padding(top = 2.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color(0xFFD32F2F).copy(alpha = 0.15f))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = "${item.priority.label} Alert",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFFD32F2F),
+                                fontSize = 10.sp
+                            )
+                        }
+                    }
+                }
+
+                if (!item.isRead && !isSelectionMode) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
+                            .align(Alignment.CenterVertically)
+                    )
+                }
+            }
+
+            // Quick Item Action Buttons Bar (When Selection Mode is Off)
+            if (!isSelectionMode) {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = onToggleRead,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (item.isRead) Icons.Default.MarkEmailUnread else Icons.Default.MarkEmailRead,
+                            contentDescription = if (item.isRead) "Mark as Unread" else "Mark as Read",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+
+                    if (!item.isArchived) {
+                        IconButton(
+                            onClick = onArchive,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Archive,
+                                contentDescription = "Archive Notification",
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+
+                    IconButton(
+                        onClick = onDelete,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Delete Notification",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
-            }
-
-            if (!item.isRead) {
-                Spacer(modifier = Modifier.width(8.dp))
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primary)
-                        .align(Alignment.CenterVertically)
-                )
             }
         }
     }
