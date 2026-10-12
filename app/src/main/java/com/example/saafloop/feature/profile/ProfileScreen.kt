@@ -1,6 +1,7 @@
 package com.example.saafloop.feature.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,10 +20,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Build
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.PersonOutline
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.SupervisorAccount
 import androidx.compose.material.icons.filled.Visibility
@@ -37,6 +37,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,12 +45,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.saafloop.R
-import com.example.saafloop.core.util.LocaleManager
 import com.example.saafloop.feature.localization.LanguageSelectionDialog
+import java.io.File
 
 @Composable
 fun ProfileScreen(
@@ -58,12 +64,19 @@ fun ProfileScreen(
     onOpenCoordinatorDashboard: () -> Unit,
     onOpenFieldDashboard: () -> Unit,
     onOpenSecurityPrivacySettings: () -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    profileViewModel: ProfileViewModel = viewModel()
 ) {
+    val displayName by profileViewModel.displayNameState.collectAsState()
+    val email by profileViewModel.emailState.collectAsState()
+    val phone by profileViewModel.phoneState.collectAsState()
+    val photoPath by profileViewModel.profilePhotoPathState.collectAsState()
+    val currentLangCode by profileViewModel.selectedLanguageState.collectAsState()
+
     val scrollState = rememberScrollState()
     var showExitConfirmation by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
-    var currentLangCode by remember { mutableStateOf("en") }
+    var showEditProfileDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -73,9 +86,11 @@ fun ProfileScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        // 1. Guest Status Header Card
+        // 1. User Profile Header Card with Avatar
         Card(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "Resident Profile Card for $displayName" },
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceVariant
             ),
@@ -87,43 +102,73 @@ fun ProfileScreen(
                     .padding(20.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Avatar with local photo or fallback icon
                 Box(
                     modifier = Modifier
-                        .size(56.dp)
+                        .size(64.dp)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.secondaryContainer),
+                        .background(MaterialTheme.colorScheme.secondaryContainer)
+                        .clickable { showEditProfileDialog = true },
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.PersonOutline,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = stringResource(R.string.profile_guest_title),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                    val currentPhotoPath = photoPath
+                    if (currentPhotoPath != null && File(currentPhotoPath).exists()) {
+                        AsyncImage(
+                            model = File(currentPhotoPath),
+                            contentDescription = "User Avatar",
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.size(64.dp)
+                        )
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Person,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.size(36.dp)
                         )
                     }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(6.dp))
-                            .background(MaterialTheme.colorScheme.secondary)
-                            .padding(horizontal = 8.dp, vertical = 2.dp)
-                    ) {
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = displayName,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    if (email.isNotBlank()) {
                         Text(
-                            text = stringResource(R.string.profile_guest_badge),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSecondary
+                            text = email,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                         )
+                    }
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(MaterialTheme.colorScheme.secondary)
+                                .padding(horizontal = 8.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.profile_guest_badge),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSecondary
+                            )
+                        }
+
+                        TextButton(onClick = { showEditProfileDialog = true }) {
+                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(14.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Edit Profile", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }
@@ -402,12 +447,31 @@ fun ProfileScreen(
         }
     }
 
+    if (showEditProfileDialog) {
+        EditProfileDialog(
+            initialName = displayName,
+            initialEmail = email,
+            initialPhone = phone,
+            profilePhotoPath = photoPath,
+            onDismiss = { showEditProfileDialog = false },
+            onSaveProfile = { name, emailStr, phoneStr ->
+                profileViewModel.updateProfileDetails(name, emailStr, phoneStr)
+            },
+            onPhotoSelected = { uri ->
+                profileViewModel.saveProfilePhotoUri(uri)
+            },
+            onPhotoRemoved = {
+                profileViewModel.removeProfilePhoto()
+            }
+        )
+    }
+
     if (showLanguageDialog) {
         LanguageSelectionDialog(
             currentLanguageCode = currentLangCode,
             onDismiss = { showLanguageDialog = false },
             onSelectLanguage = { code ->
-                currentLangCode = code
+                profileViewModel.setSelectedLanguage(code)
             }
         )
     }

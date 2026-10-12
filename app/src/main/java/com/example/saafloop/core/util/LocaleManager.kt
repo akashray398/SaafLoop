@@ -24,4 +24,9 @@ object LocaleManager {
 
         return context.createConfigurationContext(config)
     }
+
+    fun applyLanguage(context: Context, languageCode: String) {
+        val locale = Locale.forLanguageTag(languageCode)
+        Locale.setDefault(locale)
+    }
 }
