@@ -19,8 +19,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Autorenew
 import androidx.compose.material.icons.filled.Groups
@@ -32,13 +30,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -49,7 +46,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.saafloop.core.designsystem.SaafLoopLogo
-import com.example.saafloop.ui.theme.NeoControlledCyan
 import com.example.saafloop.ui.theme.NeoElectricLime
 import com.example.saafloop.ui.theme.NeoMidnightBackground
 import com.example.saafloop.ui.theme.NeoMint
@@ -59,75 +55,45 @@ import com.example.saafloop.ui.theme.NeoSecondaryText
 import kotlinx.coroutines.delay
 
 /**
- * SaafLoop Master Animated Splash Screen adhering to the 5-Stage Blueprint:
- * Stage 1: The Journey Begins (Spark path)
- * Stage 2: The Loop Forms (Ribbon cycle)
- * Stage 3: The Leaf Unfolds (Nature joins the loop)
- * Stage 4: Together We Clean (Pin & Community & City skyline)
- * Stage 5: Final Splash Screen ("SaafLoop" wordmark, "Clean Today • Green Tomorrow" tagline, 4 Pillars)
+ * Cinematic Live-Animated Splash Screen for SaafLoop Neo-Eco Futurism:
+ * Fluid 1.8s sequence revealing the Earth Orb + Leaf SuperScript Logo,
+ * branded wordmark ("Saaf" White + "Loop" Lime), tagline ("Clean Today • Green Tomorrow"),
+ * and the 4 Core Pillars bar.
  */
 @Composable
 fun SaafLoopSplashScreen(
     onSplashComplete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var stage by remember { mutableIntStateOf(1) }
+    var isStarted by remember { mutableStateOf(false) }
 
-    // 5-Stage Sequential Animation Timeline
     LaunchedEffect(Unit) {
-        stage = 1 // The Journey Begins
-        delay(450L)
-        stage = 2 // The Loop Forms
-        delay(550L)
-        stage = 3 // The Leaf Unfolds
-        delay(550L)
-        stage = 4 // Together We Clean
-        delay(650L)
-        stage = 5 // Final Splash Screen
-        delay(750L)
+        isStarted = true
+        delay(1800L)
         onSplashComplete()
     }
 
-    // Animated Progress & Scale
-    val sparkProgress by animateFloatAsState(
-        targetValue = if (stage >= 1) 1f else 0f,
-        animationSpec = tween(400, easing = FastOutSlowInEasing),
-        label = "SparkProgress"
-    )
-
-    val loopProgress by animateFloatAsState(
-        targetValue = if (stage >= 2) 1f else 0f,
-        animationSpec = tween(500, easing = FastOutSlowInEasing),
-        label = "LoopProgress"
-    )
-
-    val leafProgress by animateFloatAsState(
-        targetValue = if (stage >= 3) 1f else 0f,
-        animationSpec = tween(500, easing = FastOutSlowInEasing),
-        label = "LeafProgress"
-    )
-
-    val communityProgress by animateFloatAsState(
-        targetValue = if (stage >= 4) 1f else 0f,
-        animationSpec = tween(550, easing = FastOutSlowInEasing),
-        label = "CommunityProgress"
-    )
-
     val logoScale by animateFloatAsState(
-        targetValue = if (stage >= 5) 1.0f else 0.95f,
-        animationSpec = tween(400, easing = FastOutSlowInEasing),
+        targetValue = if (isStarted) 1.0f else 0.5f,
+        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
         label = "LogoScale"
     )
 
+    val logoAlpha by animateFloatAsState(
+        targetValue = if (isStarted) 1.0f else 0f,
+        animationSpec = tween(durationMillis = 600),
+        label = "LogoAlpha"
+    )
+
     val textAlpha by animateFloatAsState(
-        targetValue = if (stage >= 5) 1.0f else 0f,
-        animationSpec = tween(600),
+        targetValue = if (isStarted) 1.0f else 0f,
+        animationSpec = tween(durationMillis = 700, delayMillis = 400),
         label = "TextAlpha"
     )
 
     val textOffsetY by animateFloatAsState(
-        targetValue = if (stage >= 5) 0f else 25f,
-        animationSpec = tween(600, easing = FastOutSlowInEasing),
+        targetValue = if (isStarted) 0f else 30f,
+        animationSpec = tween(durationMillis = 700, delayMillis = 400, easing = FastOutSlowInEasing),
         label = "TextOffsetY"
     )
 
@@ -150,98 +116,74 @@ fun SaafLoopSplashScreen(
             verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 40.dp, horizontal = 20.dp)
+                .padding(vertical = 44.dp, horizontal = 20.dp)
         ) {
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Center Animated Logo & Wordmark
+            // Center Logo & Wordmark
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                // Master Animated SaafLoop Logo Symbol
                 Box(
                     modifier = Modifier
                         .scale(logoScale)
+                        .alpha(logoAlpha)
                         .size(150.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     SaafLoopLogo(
                         modifier = Modifier.size(150.dp),
-                        stage = stage,
-                        sparkProgress = sparkProgress,
-                        loopProgress = loopProgress,
-                        leafProgress = leafProgress,
-                        communityProgress = communityProgress
+                        progress = if (isStarted) 1.0f else 0f
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(28.dp))
 
-                // Stage 5 Wordmark & Tagline
-                if (stage >= 5) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .alpha(textAlpha)
-                            .offset { IntOffset(0, textOffsetY.toInt()) }
-                    ) {
-                        // Wordmark "Saaf" (White) + "Loop" (Electric Lime Gradient)
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = "Saaf",
-                                style = MaterialTheme.typography.headlineLarge,
-                                fontSize = 42.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = NeoPrimaryText,
-                                letterSpacing = 1.sp
-                            )
-                            Text(
-                                text = "Loop",
-                                style = MaterialTheme.typography.headlineLarge,
-                                fontSize = 42.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = NeoElectricLime,
-                                letterSpacing = 1.sp
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(6.dp))
-
-                        // Tagline: "Clean Today • Green Tomorrow"
+                // Wordmark & Tagline Reveal
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .alpha(textAlpha)
+                        .offset { IntOffset(0, textOffsetY.toInt()) }
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = "Clean Today  •  Green Tomorrow",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = NeoSecondaryText,
-                            textAlign = TextAlign.Center,
-                            letterSpacing = 0.5.sp
+                            text = "Saaf",
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontSize = 42.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = NeoPrimaryText,
+                            letterSpacing = 1.sp
+                        )
+                        Text(
+                            text = "Loop",
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontSize = 42.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = NeoElectricLime,
+                            letterSpacing = 1.sp
                         )
                     }
-                } else {
-                    // Stages 1-4 Explainer Labels
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
                     Text(
-                        text = when (stage) {
-                            1 -> "The Journey Begins…"
-                            2 -> "The Loop Forms…"
-                            3 -> "The Leaf Unfolds…"
-                            4 -> "Together We Clean…"
-                            else -> ""
-                        },
+                        text = "Clean Today  •  Green Tomorrow",
                         style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = NeoMint,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = NeoSecondaryText,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.alpha(0.85f)
+                        letterSpacing = 0.5.sp
                     )
                 }
             }
 
             // Bottom Core 4 Pillars Bar
             AnimatedVisibility(
-                visible = stage >= 5,
-                enter = fadeIn(tween(600)) + slideInVertically(tween(600)) { it / 2 }
+                visible = isStarted,
+                enter = fadeIn(tween(600, delayMillis = 600)) + slideInVertically(tween(600, delayMillis = 600)) { it / 2 }
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),

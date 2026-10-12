@@ -5,27 +5,26 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Flowing Ribbon Loop -->
+    <!-- Smooth Outer Eco Loop Circle -->
     <path
         android:strokeColor="#FFFFFF"
         android:strokeWidth="6"
         android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M54,24 C78,26 84,58 66,78 C44,88 24,74 24,54 C24,36 40,24 54,24 Z" />
+        android:pathData="M54,20 A34,34 0 1,1 53.9,20" />
 
-    <!-- Top Leaf -->
+    <!-- Top Unfolding Green Leaf -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M56,24 C54,12 68,9 80,16 C80,26 68,30 56,24 Z" />
-
-    <!-- Community People Head -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M54,62m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+        android:pathData="M54,20 C52,6 68,4 78,12 C78,22 66,26 54,20 Z" />
 
     <!-- Location Pin -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M54,50 C44,40 42,32 54,32 C66,32 64,40 54,50 Z" />
+        android:pathData="M54,54 C44,44 42,34 54,34 C66,34 64,44 54,54 Z" />
+
+    <!-- Community People -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,66m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
 
 </vector>

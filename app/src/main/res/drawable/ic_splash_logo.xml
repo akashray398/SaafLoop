@@ -5,37 +5,41 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Flowing Ribbon Loop (Mint #7CEBC0) -->
+    <!-- Smooth Outer Eco Loop Circle (Mint #7CEBC0) -->
     <path
         android:strokeColor="#7CEBC0"
         android:strokeWidth="6"
         android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:pathData="M54,24 C78,26 84,58 66,78 C44,88 24,74 24,54 C24,36 40,24 54,24 Z" />
+        android:pathData="M54,20 A34,34 0 1,1 53.9,20" />
 
     <!-- Top Unfolding Green Leaf (Electric Lime #C7FF4D) -->
     <path
         android:fillColor="#C7FF4D"
-        android:pathData="M56,24 C54,12 68,9 80,16 C80,26 68,30 56,24 Z" />
+        android:pathData="M54,20 C52,6 68,4 78,12 C78,22 66,26 54,20 Z" />
 
-    <!-- City Skyline Buildings Silhouette inside loop (Cyan #57DDE0) -->
+    <!-- Inner Luminous Location Pin Anchor (Electric Lime #C7FF4D) -->
     <path
-        android:fillColor="#57DDE0"
-        android:fillAlpha="0.4"
-        android:pathData="M34,70 L34,62 L40,62 L40,56 L48,56 L48,64 L56,64 L56,54 L64,54 L64,66 L72,66 L72,70 Z" />
+        android:fillColor="#C7FF4D"
+        android:pathData="M54,54 C44,44 42,34 54,34 C66,34 64,44 54,54 Z" />
+
+    <path
+        android:fillColor="#071713"
+        android:pathData="M54,41m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
 
     <!-- Community 3-People Group Silhouette (Mint #7CEBC0) -->
     <path
         android:fillColor="#7CEBC0"
-        android:pathData="M54,62m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
-
-    <!-- Luminous Location Pin Anchor (Electric Lime #C7FF4D) -->
+        android:pathData="M54,66m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
     <path
-        android:fillColor="#C7FF4D"
-        android:pathData="M54,50 C44,40 42,32 54,32 C66,32 64,40 54,50 Z" />
+        android:fillColor="#7CEBC0"
+        android:pathData="M48,74 C48,70 60,70 60,74 Z" />
 
     <path
-        android:fillColor="#071713"
-        android:pathData="M54,38m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+        android:fillColor="#7CEBC0"
+        android:pathData="M44,68m-2.5,0a2.5,2.5 0,1 1,5 0a2.5,2.5 0,1 1,-2.5 0" />
+
+    <path
+        android:fillColor="#7CEBC0"
+        android:pathData="M64,68m-2.5,0a2.5,2.5 0,1 1,5 0a2.5,2.5 0,1 1,-2.5 0" />
 
 </vector>
