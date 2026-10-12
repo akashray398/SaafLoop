@@ -152,28 +152,11 @@ fun HomeScreen(
             visible = isActionVisible,
             enter = fadeIn() + slideInVertically(initialOffsetY = { it / 2 })
         ) {
-            Button(
+            com.example.saafloop.ui.components.PrimaryNeoButton(
+                text = "Report Waste",
                 onClick = onReportWasteClick,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Report Waste",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
+                leadingIcon = Icons.Default.Add
+            )
         }
 
         // 3. Visual Three-Step Explanation

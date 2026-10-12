@@ -1,6 +1,5 @@
 package com.example.saafloop.ui.theme
 
-import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -11,36 +10,56 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
-private val DarkColorScheme = darkColorScheme(
-    primary = IndigoPrimaryDark,
-    secondary = TealSecondaryDark,
-    tertiary = AmberTertiaryDark,
-    background = DarkBackground,
-    surface = DarkSurface,
-    onPrimary = DarkOnPrimary,
-    onSecondary = DarkOnSecondary,
-    onTertiary = DarkOnTertiary,
-    onBackground = DarkOnBackground,
-    onSurface = DarkOnSurface
+private val NeoDarkColorScheme = darkColorScheme(
+    primary = NeoElectricLime,
+    onPrimary = NeoMidnightBackground,
+    primaryContainer = NeoElevatedSurface,
+    onPrimaryContainer = NeoPrimaryText,
+    secondary = NeoMint,
+    onSecondary = NeoMidnightBackground,
+    secondaryContainer = NeoSecondarySurface,
+    onSecondaryContainer = NeoPrimaryText,
+    tertiary = NeoControlledCyan,
+    onTertiary = NeoMidnightBackground,
+    background = NeoMidnightBackground,
+    onBackground = NeoPrimaryText,
+    surface = NeoPrimarySurface,
+    onSurface = NeoPrimaryText,
+    surfaceVariant = NeoElevatedSurface,
+    onSurfaceVariant = NeoSecondaryText,
+    outline = NeoSubtleBorder,
+    outlineVariant = NeoSubtleBorder.copy(alpha = 0.6f),
+    error = NeoError,
+    onError = NeoMidnightBackground
 )
 
-private val LightColorScheme = lightColorScheme(
-    primary = IndigoPrimary,
-    secondary = TealSecondary,
-    tertiary = AmberTertiary,
-    background = LightBackground,
-    surface = LightSurface,
-    onPrimary = LightOnPrimary,
-    onSecondary = LightOnSecondary,
-    onTertiary = LightOnTertiary,
-    onBackground = LightOnBackground,
-    onSurface = LightOnSurface
+private val NeoLightColorScheme = lightColorScheme(
+    primary = NeoLightForestPrimaryAction,
+    onPrimary = NeoLightPrimarySurface,
+    primaryContainer = NeoLightPaleMintSurface,
+    onPrimaryContainer = NeoLightDeepForestText,
+    secondary = NeoLightForestPrimaryAction,
+    onSecondary = NeoLightPrimarySurface,
+    secondaryContainer = NeoLightElevatedSurface,
+    onSecondaryContainer = NeoLightDeepForestText,
+    tertiary = NeoLightForestPrimaryAction,
+    onTertiary = NeoLightPrimarySurface,
+    background = NeoLightBackground,
+    onBackground = NeoLightDeepForestText,
+    surface = NeoLightPrimarySurface,
+    onSurface = NeoLightDeepForestText,
+    surfaceVariant = NeoLightElevatedSurface,
+    onSurfaceVariant = NeoLightSecondaryText,
+    outline = NeoLightBorder,
+    outlineVariant = NeoLightBorder.copy(alpha = 0.6f),
+    error = NeoError,
+    onError = NeoLightPrimarySurface
 )
 
 @Composable
 fun SaafLoopTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Set to false by default to ensure SaafLoop's distinctive visual identity is preserved
+    // Set to false by default to ensure SaafLoop's distinctive Neo-Eco visual identity is preserved
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
@@ -50,8 +69,8 @@ fun SaafLoopTheme(
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
 
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        darkTheme -> NeoDarkColorScheme
+        else -> NeoLightColorScheme
     }
 
     MaterialTheme(
