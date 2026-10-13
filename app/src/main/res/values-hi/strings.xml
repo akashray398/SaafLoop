@@ -41,6 +41,11 @@
     <string name="report_category_overflow">ओवरफ़्लो कूड़ादान</string>
     <string name="report_category_debris">निर्माण मलबा</string>
     <string name="report_category_other">अन्य कचरा</string>
+    <string name="report_category_drain">अवरुद्ध नाला / जलभराव</string>
+    <string name="report_category_smoke">धुआं / वायु प्रदूषण</string>
+    <string name="report_category_noise">अत्यधिक ध्वनि प्रदूषण</string>
+    <string name="report_category_trees">क्षतिग्रस्त पेड़ / हरियाली</string>
+    <string name="report_category_water">जल रिसाव / जल प्रदूषण</string>
 
     <!-- Accessibility Labels -->
     <string name="cd_search_icon">नागरिक संसाधन खोजें</string>

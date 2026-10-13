@@ -22,9 +22,29 @@ enum class WasteCategory(
         titleRes = R.string.report_category_debris,
         description = "Concrete, bricks, plaster, or renovation rubble"
     ),
+    BLOCKED_DRAIN(
+        titleRes = R.string.report_category_drain,
+        description = "Waterlogging, choked stormwater drains, or canal blockage"
+    ),
+    SMOKE_AIR_POLLUTION(
+        titleRes = R.string.report_category_smoke,
+        description = "Open garbage burning, chemical fumes, or dense smoke"
+    ),
+    NOISE_POLLUTION(
+        titleRes = R.string.report_category_noise,
+        description = "Unlawful industrial or public loudspeaker noise disturbance"
+    ),
+    DAMAGED_TREES(
+        titleRes = R.string.report_category_trees,
+        description = "Fallen or hazardous trees, neglected parks, or damaged green belts"
+    ),
+    WATER_LEAK_POLLUTION(
+        titleRes = R.string.report_category_water,
+        description = "Leaking public water pipes, sewage overflow, or water contamination"
+    ),
     OTHER_UNSURE(
         titleRes = R.string.report_category_other,
-        description = "Unidentified or complex waste accumulation"
+        description = "Unidentified or complex environmental observation"
     )
 }
 

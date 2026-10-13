@@ -41,6 +41,11 @@
     <string name="report_category_overflow">ਓਵਰਫਲੋਅ ਡਸਟਬਿਨ</string>
     <string name="report_category_debris">ਉਸਾਰੀ ਦਾ ਮਲਬਾ</string>
     <string name="report_category_other">ਹੋਰ ਕੂੜਾ</string>
+    <string name="report_category_drain">ਬੰਦ ਨਾਲਾ / ਜਲ-ਭਰਾਅ</string>
+    <string name="report_category_smoke">ਧੂੰਆਂ / ਹਵਾ ਪ੍ਰਦੂਸ਼ਣ</string>
+    <string name="report_category_noise">ਅਤਿਅੰਤ ਸ਼ੋਰ ਪ੍ਰਦੂਸ਼ਣ</string>
+    <string name="report_category_trees">ਨੁਕਸਾਨੇ ਰੁੱਖ / ਹਰਿਆਵਲ</string>
+    <string name="report_category_water">ਪਾਣੀ ਦਾ ਰਿਸਾਅ / ਪ੍ਰਦੂਸ਼ਣ</string>
 
     <!-- Accessibility Labels -->
     <string name="cd_search_icon">ਖੋਜੋ</string>

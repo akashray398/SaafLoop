@@ -93,6 +93,11 @@
     <string name="report_category_overflow">Overflowing Bin</string>
     <string name="report_category_debris">Construction Debris</string>
     <string name="report_category_other">Other / Unsure</string>
+    <string name="report_category_drain">Blocked Drain / Waterlogging</string>
+    <string name="report_category_smoke">Smoke / Air Pollution</string>
+    <string name="report_category_noise">Excessive Noise Pollution</string>
+    <string name="report_category_trees">Damaged Trees / Greenery</string>
+    <string name="report_category_water">Water Leak / Water Contamination</string>
     <string name="report_category_required_error">Please select a waste category.</string>
     <string name="report_size_title">Estimated Waste Size</string>
     <string name="report_size_subtitle">(Reporter\'s estimate)</string>
