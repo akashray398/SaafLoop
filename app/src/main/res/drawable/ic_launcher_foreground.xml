@@ -5,44 +5,61 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- 1. Smooth Outer Eco Loop Circle (Mint #7CEBC0) -->
+    <!-- Safe-Zone Centered Master Logo (Centered around 54, 54 inside 64dp safe area) -->
+
+    <!-- 1. Flowing Ribbon Loop (Mint #7CEBC0 & Electric Lime #C7FF4D) -->
     <path
         android:strokeColor="#7CEBC0"
-        android:strokeWidth="6"
+        android:strokeWidth="5.5"
         android:strokeLineCap="round"
-        android:pathData="M54,20 A34,34 0 1,1 53.9,20" />
+        android:strokeLineJoin="round"
+        android:pathData="M54,26 C72,28 78,54 64,72 C46,82 28,72 28,54 C28,38 42,26 54,26 Z" />
 
     <!-- 2. Top Unfolding Green Leaf (Electric Lime #C7FF4D) -->
     <path
         android:fillColor="#C7FF4D"
-        android:pathData="M54,20 C52,6 68,4 78,12 C78,22 66,26 54,20 Z" />
+        android:pathData="M54,26 C52,14 66,12 76,18 C76,27 66,30 54,26 Z" />
 
-    <!-- 3. Inner Luminous Location Pin Anchor (Electric Lime #C7FF4D) -->
+    <!-- Leaf Vein Line -->
     <path
-        android:fillColor="#C7FF4D"
-        android:pathData="M54,54 C44,44 42,34 54,34 C66,34 64,44 54,54 Z" />
+        android:strokeColor="#071713"
+        android:strokeWidth="1.2"
+        android:strokeLineCap="round"
+        android:pathData="M54,26 C62,20 68,18 76,18" />
 
+    <!-- 3. City Skyline Buildings Silhouette inside loop (Cyan #57DDE0) -->
     <path
-        android:fillColor="#071713"
-        android:pathData="M54,41m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+        android:fillColor="#57DDE0"
+        android:fillAlpha="0.45"
+        android:pathData="M36,68 L36,61 L41,61 L41,55 L48,55 L48,63 L55,63 L55,52 L62,52 L62,64 L68,64 L68,68 Z" />
 
     <!-- 4. Community 3-People Group Silhouette (Mint #7CEBC0) -->
     <!-- Center Person -->
     <path
         android:fillColor="#7CEBC0"
-        android:pathData="M54,66m-3,0a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+        android:pathData="M54,61m-2.5,0a2.5,2.5 0,1 1,5 0a2.5,2.5 0,1 1,-2.5 0" />
     <path
         android:fillColor="#7CEBC0"
-        android:pathData="M48,74 C48,70 60,70 60,74 Z" />
+        android:pathData="M49,68 C49,65 59,65 59,68 Z" />
 
     <!-- Left Person -->
     <path
         android:fillColor="#7CEBC0"
-        android:pathData="M44,68m-2.5,0a2.5,2.5 0,1 1,5 0a2.5,2.5 0,1 1,-2.5 0" />
+        android:pathData="M46,63m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-2 0" />
 
     <!-- Right Person -->
     <path
         android:fillColor="#7CEBC0"
-        android:pathData="M64,68m-2.5,0a2.5,2.5 0,1 1,5 0a2.5,2.5 0,1 1,-2.5 0" />
+        android:pathData="M62,63m-2,0a2,2 0,1 1,4 0a2,2 0,1 1,-2 0" />
+
+    <!-- 5. Luminous Location Pin Anchor (Electric Lime #C7FF4D) -->
+    <path
+        android:fillColor="#C7FF4D"
+        android:pathData="M54,48 C46,39 44,32 54,32 C64,32 62,39 54,48 Z" />
+
+    <!-- Pin Center Anchor Dot -->
+    <path
+        android:fillColor="#071713"
+        android:pathData="M54,38m-2.5,0a2.5,2.5 0,1 1,5 0a2.5,2.5 0,1 1,-2.5 0" />
 
 </vector>

@@ -19,163 +19,263 @@ import com.example.saafloop.ui.theme.NeoElectricLime
 import com.example.saafloop.ui.theme.NeoMint
 
 /**
- * Signature SaafLoop Logo Component:
- * S-Loop + Unfolding Leaf + Luminous Location Pin Anchor.
- * Fuses circular sustainability, map spot reporting, and environmental renewal.
+ * Premium 3D-Effect SaafLoop Master Logo Emblem:
+ * Features multi-layer depth, 3D ribbon shading, specular highlights,
+ * luminous location pin anchor, city skyline, and community group silhouettes.
  */
 @Composable
 fun SaafLoopLogo(
     modifier: Modifier = Modifier,
-    progress: Float = 1f
+    stage: Int = 5,
+    sparkProgress: Float = 1f,
+    loopProgress: Float = 1f,
+    leafProgress: Float = 1f,
+    communityProgress: Float = 1f
 ) {
-    val alphaVal = progress.coerceIn(0f, 1f)
-
-    Canvas(modifier = modifier.size(120.dp)) {
+    Canvas(modifier = modifier.size(130.dp)) {
         val w = size.width
         val h = size.height
-        val strokeWidth = w * 0.08f
+        val strokePx = w * 0.085f
 
-        // 1. Flowing SuperScript "S" Eco Loop Ribbon (Mint -> Lime Gradient)
-        val sLoopPath = Path().apply {
-            moveTo(w * 0.62f, h * 0.28f)
-            cubicTo(
-                w * 0.35f, h * 0.22f,
-                w * 0.22f, h * 0.42f,
-                w * 0.50f, h * 0.52f
-            )
-            cubicTo(
-                w * 0.78f, h * 0.62f,
-                w * 0.65f, h * 0.82f,
-                w * 0.38f, h * 0.78f
-            )
-            cubicTo(
-                w * 0.18f, h * 0.74f,
-                w * 0.18f, h * 0.54f,
-                w * 0.35f, h * 0.48f
-            )
-        }
-
-        drawPath(
-            path = sLoopPath,
-            brush = Brush.linearGradient(
-                colors = listOf(
-                    NeoControlledCyan,
-                    NeoMint,
-                    NeoElectricLime
+        // Stage 1: Initial Journey Light Path & Spark
+        if (stage >= 1) {
+            val sparkPath = Path().apply {
+                moveTo(w * 0.22f, h * 0.78f)
+                cubicTo(
+                    w * 0.12f, h * 0.50f,
+                    w * 0.28f, h * 0.20f,
+                    w * 0.58f, h * 0.18f
+                )
+            }
+            drawPath(
+                path = sparkPath,
+                brush = Brush.linearGradient(
+                    colors = listOf(NeoControlledCyan, NeoElectricLime)
                 ),
-                start = Offset(w * 0.2f, h * 0.2f),
-                end = Offset(w * 0.8f, h * 0.8f)
-            ),
-            style = Stroke(
-                width = strokeWidth,
-                cap = StrokeCap.Round,
-                join = StrokeJoin.Round
-            ),
-            alpha = alphaVal
-        )
-
-        // 2. Top Unfolding Leaf at the head of the S-Loop
-        val leafPath = Path().apply {
-            moveTo(w * 0.62f, h * 0.28f)
-            cubicTo(
-                w * 0.58f, h * 0.08f,
-                w * 0.78f, h * 0.04f,
-                w * 0.88f, h * 0.16f
+                style = Stroke(
+                    width = strokePx * 0.6f,
+                    cap = StrokeCap.Round
+                ),
+                alpha = sparkProgress.coerceIn(0f, 1f)
             )
-            cubicTo(
-                w * 0.88f, h * 0.28f,
-                w * 0.74f, h * 0.32f,
-                w * 0.62f, h * 0.28f
-            )
-            close()
-        }
 
-        drawPath(
-            path = leafPath,
-            brush = Brush.horizontalGradient(
-                colors = listOf(NeoMint, NeoElectricLime)
-            ),
-            alpha = alphaVal
-        )
-
-        // Leaf Vein Accent
-        val veinPath = Path().apply {
-            moveTo(w * 0.62f, h * 0.28f)
-            cubicTo(
-                w * 0.72f, h * 0.20f,
-                w * 0.80f, h * 0.17f,
-                w * 0.88f, h * 0.16f
+            // Luminous Head Spark
+            drawCircle(
+                color = NeoElectricLime,
+                radius = strokePx * 0.75f,
+                center = Offset(w * 0.58f, h * 0.18f),
+                alpha = sparkProgress.coerceIn(0f, 1f)
             )
         }
-        drawPath(
-            path = veinPath,
-            color = Color(0xFF071713).copy(alpha = 0.5f * alphaVal),
-            style = Stroke(width = strokeWidth * 0.22f, cap = StrokeCap.Round)
-        )
 
-        // 3. Luminous Location Pin Anchor inside upper loop head
-        val pinWidth = w * 0.18f
-        val pinHeight = h * 0.24f
-        val pinCenterY = h * 0.38f
+        // Stage 2: 3D Ribbon Loop Formation with Depth Shadow & Highlights
+        if (stage >= 2) {
+            val loopPath = Path().apply {
+                moveTo(w * 0.50f, h * 0.18f)
+                cubicTo(
+                    w * 0.82f, h * 0.20f,
+                    w * 0.88f, h * 0.58f,
+                    w * 0.65f, h * 0.82f
+                )
+                cubicTo(
+                    w * 0.40f, h * 0.92f,
+                    w * 0.18f, h * 0.75f,
+                    w * 0.18f, h * 0.52f
+                )
+                cubicTo(
+                    w * 0.18f, h * 0.32f,
+                    w * 0.35f, h * 0.18f,
+                    w * 0.50f, h * 0.18f
+                )
+            }
 
-        val pinPath = Path().apply {
-            moveTo(w * 0.48f, pinCenterY + pinHeight / 2f)
-            cubicTo(
-                w * 0.48f - pinWidth / 2f, pinCenterY + pinHeight * 0.1f,
-                w * 0.48f - pinWidth / 2f, pinCenterY - pinHeight / 2f,
-                w * 0.48f, pinCenterY - pinHeight / 2f
+            // 3D Ambient Drop Shadow Layer
+            drawPath(
+                path = loopPath,
+                color = Color.Black.copy(alpha = 0.4f * loopProgress),
+                style = Stroke(
+                    width = strokePx * 1.3f,
+                    cap = StrokeCap.Round,
+                    join = StrokeJoin.Round
+                )
             )
-            cubicTo(
-                w * 0.48f + pinWidth / 2f, pinCenterY - pinHeight / 2f,
-                w * 0.48f + pinWidth / 2f, pinCenterY + pinHeight * 0.1f,
-                w * 0.48f, pinCenterY + pinHeight / 2f
+
+            // 3D Multi-Color Gradient Core Ribbon
+            drawPath(
+                path = loopPath,
+                brush = Brush.sweepGradient(
+                    colors = listOf(
+                        Color(0xFF0A3326),
+                        NeoControlledCyan,
+                        NeoMint,
+                        NeoElectricLime,
+                        Color(0xFF0A3326)
+                    ),
+                    center = Offset(w * 0.5f, h * 0.5f)
+                ),
+                style = Stroke(
+                    width = strokePx * 1.1f,
+                    cap = StrokeCap.Round,
+                    join = StrokeJoin.Round
+                ),
+                alpha = loopProgress.coerceIn(0f, 1f)
             )
-            close()
+
+            // 3D Specular Top Edge Highlight
+            drawPath(
+                path = loopPath,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.7f),
+                        Color.Transparent,
+                        Color.White.copy(alpha = 0.5f)
+                    )
+                ),
+                style = Stroke(
+                    width = strokePx * 0.25f,
+                    cap = StrokeCap.Round
+                ),
+                alpha = loopProgress.coerceIn(0f, 1f)
+            )
         }
 
-        drawPath(
-            path = pinPath,
-            color = NeoElectricLime.copy(alpha = alphaVal)
-        )
+        // Stage 3: Top Unfolding 3D Leaf Accent
+        if (stage >= 3) {
+            val topLeafPath = Path().apply {
+                moveTo(w * 0.52f, h * 0.18f)
+                cubicTo(
+                    w * 0.50f, h * 0.03f,
+                    w * 0.70f, h * 0.00f,
+                    w * 0.82f, h * 0.08f
+                )
+                cubicTo(
+                    w * 0.82f, h * 0.22f,
+                    w * 0.66f, h * 0.26f,
+                    w * 0.52f, h * 0.18f
+                )
+                close()
+            }
 
-        // Pin Inner Anchor Dot
-        drawCircle(
-            color = Color(0xFF071713),
-            radius = w * 0.03f,
-            center = Offset(w * 0.48f, pinCenterY - pinHeight * 0.1f),
-            alpha = alphaVal
-        )
-
-        // 4. Community 3-People Group Silhouette in lower loop
-        drawCircle(
-            color = NeoMint.copy(alpha = 0.95f * alphaVal),
-            radius = w * 0.032f,
-            center = Offset(w * 0.52f, h * 0.68f)
-        )
-        val centerBody = Path().apply {
-            moveTo(w * 0.46f, h * 0.77f)
-            cubicTo(
-                w * 0.46f, h * 0.72f,
-                w * 0.58f, h * 0.72f,
-                w * 0.58f, h * 0.77f
+            // 3D Leaf Body Gradient
+            drawPath(
+                path = topLeafPath,
+                brush = Brush.verticalGradient(
+                    colors = listOf(NeoElectricLime, NeoMint)
+                ),
+                alpha = leafProgress.coerceIn(0f, 1f)
             )
-            close()
+
+            // Leaf Vein Line
+            val veinPath = Path().apply {
+                moveTo(w * 0.52f, h * 0.18f)
+                cubicTo(
+                    w * 0.64f, h * 0.12f,
+                    w * 0.74f, h * 0.08f,
+                    w * 0.82f, h * 0.08f
+                )
+            }
+            drawPath(
+                path = veinPath,
+                color = Color(0xFF071713).copy(alpha = 0.6f * leafProgress),
+                style = Stroke(width = strokePx * 0.25f, cap = StrokeCap.Round)
+            )
         }
-        drawPath(path = centerBody, color = NeoMint.copy(alpha = 0.95f * alphaVal))
 
-        // Left Companion
-        drawCircle(
-            color = NeoMint.copy(alpha = 0.75f * alphaVal),
-            radius = w * 0.026f,
-            center = Offset(w * 0.43f, h * 0.70f)
-        )
+        // Stage 4: City Skyline, Community Group & Luminous Pin
+        if (stage >= 4) {
+            val pAlpha = communityProgress.coerceIn(0f, 1f)
 
-        // Right Companion
-        drawCircle(
-            color = NeoMint.copy(alpha = 0.75f * alphaVal),
-            radius = w * 0.026f,
-            center = Offset(w * 0.61f, h * 0.70f)
-        )
+            // City Skyline Silhouette
+            val skylinePath = Path().apply {
+                moveTo(w * 0.30f, h * 0.70f)
+                lineTo(w * 0.30f, h * 0.60f)
+                lineTo(w * 0.36f, h * 0.60f)
+                lineTo(w * 0.36f, h * 0.54f)
+                lineTo(w * 0.44f, h * 0.54f)
+                lineTo(w * 0.44f, h * 0.62f)
+                lineTo(w * 0.52f, h * 0.62f)
+                lineTo(w * 0.52f, h * 0.52f)
+                lineTo(w * 0.60f, h * 0.52f)
+                lineTo(w * 0.60f, h * 0.64f)
+                lineTo(w * 0.68f, h * 0.64f)
+                lineTo(w * 0.68f, h * 0.70f)
+                close()
+            }
+            drawPath(
+                path = skylinePath,
+                color = NeoControlledCyan.copy(alpha = 0.4f * pAlpha)
+            )
+
+            // Community 3-People Group Silhouette
+            // Center Person
+            drawCircle(
+                color = NeoMint.copy(alpha = 0.95f * pAlpha),
+                radius = w * 0.035f,
+                center = Offset(w * 0.50f, h * 0.62f)
+            )
+            val centerBody = Path().apply {
+                moveTo(w * 0.45f, h * 0.71f)
+                cubicTo(
+                    w * 0.45f, h * 0.66f,
+                    w * 0.55f, h * 0.66f,
+                    w * 0.55f, h * 0.71f
+                )
+                close()
+            }
+            drawPath(path = centerBody, color = NeoMint.copy(alpha = 0.95f * pAlpha))
+
+            // Left & Right Companions
+            drawCircle(
+                color = NeoMint.copy(alpha = 0.8f * pAlpha),
+                radius = w * 0.028f,
+                center = Offset(w * 0.41f, h * 0.64f)
+            )
+            drawCircle(
+                color = NeoMint.copy(alpha = 0.8f * pAlpha),
+                radius = w * 0.028f,
+                center = Offset(w * 0.59f, h * 0.64f)
+            )
+
+            // 3D Luminous Location Pin Anchor
+            val pinPath = Path().apply {
+                moveTo(w * 0.50f, h * 0.48f)
+                cubicTo(
+                    w * 0.40f, h * 0.38f,
+                    w * 0.38f, h * 0.28f,
+                    w * 0.50f, h * 0.28f
+                )
+                cubicTo(
+                    w * 0.62f, h * 0.28f,
+                    w * 0.60f, h * 0.38f,
+                    w * 0.50f, h * 0.48f
+                )
+                close()
+            }
+
+            // Pin Shadow
+            drawPath(
+                path = pinPath,
+                color = Color.Black.copy(alpha = 0.35f * pAlpha),
+                style = Stroke(width = strokePx * 0.3f)
+            )
+
+            // Pin Core Fill
+            drawPath(
+                path = pinPath,
+                brush = Brush.verticalGradient(
+                    colors = listOf(NeoElectricLime, NeoMint)
+                ),
+                alpha = pAlpha
+            )
+
+            // Inner Pin Anchor Dot
+            drawCircle(
+                color = Color(0xFF071713),
+                radius = w * 0.032f,
+                center = Offset(w * 0.50f, h * 0.34f),
+                alpha = pAlpha
+            )
+        }
     }
 }
 
@@ -183,6 +283,6 @@ fun SaafLoopLogo(
 @Composable
 fun SaafLoopLogoPreview() {
     Box(modifier = Modifier.size(140.dp)) {
-        SaafLoopLogo()
+        SaafLoopLogo(stage = 5)
     }
 }

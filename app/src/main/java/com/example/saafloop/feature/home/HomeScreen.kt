@@ -98,7 +98,7 @@ private val HOME_SLIDES = listOf(
         fallbackGradient = listOf(Color(0xFF00796B), Color(0xFF004D40))
     ),
     HomeSlideItem(
-        imageUrl = "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=75",
+        imageUrl = "https://images.unsplash.com/photo-1588880331179-bc9b93a8cb5e?auto=format&fit=crop&w=800&q=75",
         title = "Restored Green Spaces",
         slogan = "Verifying Clean Sites to Prevent Repeat Dumping.",
         tag = "Verified Impact",

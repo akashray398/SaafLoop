@@ -30,7 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -39,6 +39,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -55,45 +56,81 @@ import com.example.saafloop.ui.theme.NeoSecondaryText
 import kotlinx.coroutines.delay
 
 /**
- * Cinematic Live-Animated Splash Screen for SaafLoop Neo-Eco Futurism:
- * Fluid 1.8s sequence revealing the Earth Orb + Leaf SuperScript Logo,
- * branded wordmark ("Saaf" White + "Loop" Lime), tagline ("Clean Today • Green Tomorrow"),
- * and the 4 Core Pillars bar.
+ * 3D Cinematic Live-Animated Splash Screen for SaafLoop Neo-Eco Futurism:
+ * Stage 1: The Journey Begins (3D light spark path)
+ * Stage 2: The Loop Forms (3D ribbon formation)
+ * Stage 3: The Leaf Unfolds (3D leaf)
+ * Stage 4: Together We Clean (Pin, City & Community Group)
+ * Stage 5: Final Settle ("Saaf" White + "Loop" Lime, Tagline "Clean Today • Green Tomorrow", 4 Pillars)
  */
 @Composable
 fun SaafLoopSplashScreen(
     onSplashComplete: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var isStarted by remember { mutableStateOf(false) }
+    var stage by remember { mutableIntStateOf(1) }
 
+    // 5-Stage Sequential Animation Timeline
     LaunchedEffect(Unit) {
-        isStarted = true
-        delay(1800L)
+        stage = 1
+        delay(400L)
+        stage = 2
+        delay(500L)
+        stage = 3
+        delay(500L)
+        stage = 4
+        delay(600L)
+        stage = 5
+        delay(700L)
         onSplashComplete()
     }
 
+    // Animated 3D Rotation, Scale & Opacity Properties
+    val logoRotationY by animateFloatAsState(
+        targetValue = if (stage >= 5) 0f else (5 - stage) * 15f,
+        animationSpec = tween(600, easing = FastOutSlowInEasing),
+        label = "LogoRotationY"
+    )
+
+    val sparkProgress by animateFloatAsState(
+        targetValue = if (stage >= 1) 1f else 0f,
+        animationSpec = tween(400, easing = FastOutSlowInEasing),
+        label = "SparkProgress"
+    )
+
+    val loopProgress by animateFloatAsState(
+        targetValue = if (stage >= 2) 1f else 0f,
+        animationSpec = tween(500, easing = FastOutSlowInEasing),
+        label = "LoopProgress"
+    )
+
+    val leafProgress by animateFloatAsState(
+        targetValue = if (stage >= 3) 1f else 0f,
+        animationSpec = tween(500, easing = FastOutSlowInEasing),
+        label = "LeafProgress"
+    )
+
+    val communityProgress by animateFloatAsState(
+        targetValue = if (stage >= 4) 1f else 0f,
+        animationSpec = tween(550, easing = FastOutSlowInEasing),
+        label = "CommunityProgress"
+    )
+
     val logoScale by animateFloatAsState(
-        targetValue = if (isStarted) 1.0f else 0.5f,
-        animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
+        targetValue = if (stage >= 5) 1.0f else 0.92f,
+        animationSpec = tween(400, easing = FastOutSlowInEasing),
         label = "LogoScale"
     )
 
-    val logoAlpha by animateFloatAsState(
-        targetValue = if (isStarted) 1.0f else 0f,
-        animationSpec = tween(durationMillis = 600),
-        label = "LogoAlpha"
-    )
-
     val textAlpha by animateFloatAsState(
-        targetValue = if (isStarted) 1.0f else 0f,
-        animationSpec = tween(durationMillis = 700, delayMillis = 400),
+        targetValue = if (stage >= 5) 1.0f else 0f,
+        animationSpec = tween(600),
         label = "TextAlpha"
     )
 
     val textOffsetY by animateFloatAsState(
-        targetValue = if (isStarted) 0f else 30f,
-        animationSpec = tween(durationMillis = 700, delayMillis = 400, easing = FastOutSlowInEasing),
+        targetValue = if (stage >= 5) 0f else 25f,
+        animationSpec = tween(600, easing = FastOutSlowInEasing),
         label = "TextOffsetY"
     )
 
@@ -116,74 +153,86 @@ fun SaafLoopSplashScreen(
             verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(vertical = 44.dp, horizontal = 20.dp)
+                .padding(vertical = 40.dp, horizontal = 20.dp)
         ) {
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Center Logo & Wordmark
+            // Center 3D Animated Logo & Wordmark
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
+                // Master 3D Animated SaafLoop Logo Symbol
                 Box(
                     modifier = Modifier
                         .scale(logoScale)
-                        .alpha(logoAlpha)
+                        .graphicsLayer {
+                            rotationY = logoRotationY
+                            cameraDistance = 12f * density
+                        }
                         .size(150.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     SaafLoopLogo(
                         modifier = Modifier.size(150.dp),
-                        progress = if (isStarted) 1.0f else 0f
+                        stage = stage,
+                        sparkProgress = sparkProgress,
+                        loopProgress = loopProgress,
+                        leafProgress = leafProgress,
+                        communityProgress = communityProgress
                     )
                 }
 
                 Spacer(modifier = Modifier.height(28.dp))
 
-                // Wordmark & Tagline Reveal
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .alpha(textAlpha)
-                        .offset { IntOffset(0, textOffsetY.toInt()) }
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                // Stage 5 Wordmark & Tagline
+                if (stage >= 5) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .alpha(textAlpha)
+                            .offset { IntOffset(0, textOffsetY.toInt()) }
+                    ) {
+                        // Wordmark "Saaf" (White) + "Loop" (Electric Lime)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Saaf",
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontSize = 42.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = NeoPrimaryText,
+                                letterSpacing = 1.sp
+                            )
+                            Text(
+                                text = "Loop",
+                                style = MaterialTheme.typography.headlineLarge,
+                                fontSize = 42.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = NeoElectricLime,
+                                letterSpacing = 1.sp
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        // Tagline: "Clean Today • Green Tomorrow"
                         Text(
-                            text = "Saaf",
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontSize = 42.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = NeoPrimaryText,
-                            letterSpacing = 1.sp
-                        )
-                        Text(
-                            text = "Loop",
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontSize = 42.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = NeoElectricLime,
-                            letterSpacing = 1.sp
+                            text = "Clean Today  •  Green Tomorrow",
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = NeoSecondaryText,
+                            textAlign = TextAlign.Center,
+                            letterSpacing = 0.5.sp
                         )
                     }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "Clean Today  •  Green Tomorrow",
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontSize = 15.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = NeoSecondaryText,
-                        textAlign = TextAlign.Center,
-                        letterSpacing = 0.5.sp
-                    )
                 }
             }
 
             // Bottom Core 4 Pillars Bar
             AnimatedVisibility(
-                visible = isStarted,
-                enter = fadeIn(tween(600, delayMillis = 600)) + slideInVertically(tween(600, delayMillis = 600)) { it / 2 }
+                visible = stage >= 5,
+                enter = fadeIn(tween(600)) + slideInVertically(tween(600)) { it / 2 }
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),

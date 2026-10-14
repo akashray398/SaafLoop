@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Native SplashScreen API Theme for Android 12+ (API 31+) -->
+    <style name="Theme.SaafLoop.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/neo_midnight_green</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_logo</item>
+        <item name="windowSplashScreenIconBackgroundColor">@color/neo_midnight_green</item>
+        <item name="postSplashScreenTheme">@style/Theme.SaafLoop</item>
+    </style>
+</resources>
