@@ -5,27 +5,22 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Flowing Ribbon Loop -->
+    <!-- S-Loop Ribbon -->
     <path
         android:strokeColor="#FFFFFF"
         android:strokeWidth="6"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
-        android:pathData="M54,22 C76,24 82,54 66,74 C44,84 24,70 24,50 C24,34 38,22 54,22 Z" />
+        android:pathData="M62,30 C35,24 22,44 50,54 C78,64 65,84 38,80 C18,76 18,56 35,50" />
 
     <!-- Top Leaf -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M55,22 C53,10 67,8 77,14 C77,24 66,28 55,22 Z" />
+        android:pathData="M62,30 C58,10 78,6 88,18 C88,30 74,34 62,30 Z" />
 
-    <!-- Location Pin -->
+    <!-- Location Pin Anchor -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M52,46 C44,37 42,30 52,30 C62,30 60,37 52,46 Z" />
-
-    <!-- Community 3-People Group -->
-    <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M52,60m-2.5,0a2.5,2.5 0,1 1,5 0a2.5,2.5 0,1 1,-2.5 0" />
+        android:pathData="M48,42 C38,32 36,22 48,22 C60,22 58,32 48,42 Z" />
 
 </vector>
